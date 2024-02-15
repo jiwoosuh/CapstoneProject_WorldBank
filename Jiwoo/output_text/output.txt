@@ -1,0 +1,27 @@
+Table 1:
+Fixed weekly income	Fixed weekly income	Fixed weekly expenditure	Fixed weekly expenditure
+Sales from store	₦ 11,000	Feeding	₦ 26,500
+	₦ 	Church offerings/Contributions	₦ 1,500
+	₦	Water	₦ 3,500
+	₦	Food stuff	₦ 15,000
+	₦	Transportation	₦ 3,500
+	₦	Fuel	₦ 4,000
+	₦		₦ 7,200
+Total:	₦ 11,000	Total:	₦ 47,700
+			
+Variable weekly income	Variable weekly income	Variable weekly expenditure	Variable weekly expenditure
+Remittances	₦ 1,000	Airtime	₦ 2,650
+	₦ 	Engine oil	₦ 500
+	₦ 	Motorcycle repairs	₦ 3,000
+	₦ 		₦ 
+	₦ 		₦ 
+	₦ 		₦ 
+	₦ 		₦ 
+	₦ 		₦ 
+	₦ 		₦ 
+	₦		₦ 
+			₦ 
+			₦
+			₦
+Total:	₦ 1,000	Total:	₦ 5,850
+
