@@ -30,4 +30,4 @@ def save_info_to_csv(respondent_id, date, week, wag, output_csv_file):
 respondent_id, date, week, wag = extract_info_from_docx('1example.docx')
 
 # Save info to csv
-save_info_to_csv(respondent_id, date, week, wag, 'output.csv')
+save_info_to_csv(respondent_id, date, week, wag, 'info_output.csv')
