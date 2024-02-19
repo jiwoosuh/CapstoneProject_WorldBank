@@ -1,0 +1,11 @@
+Transaction_Nature,Transaction_Type,Transaction_Name,Transaction_Amount,Transaction_Comment
+Income,Fixed,Income earned from the respondent’s store where she sells groceries and carbonated drinks,"₦ 4,500"
+Income,Variable,Stipend/allowance received from her daughter,"₦  2,000"
+Income,Variable,Income received from FGD participation,"₦ 1,000"
+Expenditure,Fixed,Cost of breakfast for the reporting week,₦ 950,The respondent just retired to the village after she had spent majority of her life away from the village. She is a widow in a polygynous marriage. She is the second wife hence opened a shop where she can earn some money to augment the stipends/allowances her children send to her. She lives alone in the village.
+Expenditure,Fixed,Cost of lunch for the reporting week,₦ 500,
+Expenditure,Fixed,Cost of dinner for the household for the reporting week,₦ 500,
+Expenditure,Fixed,Cost of fetching water for household use.,₦ 100,
+Expenditure,Fixed,Cost of purchasing kerosene for household use,₦ 400,Respondent disclosed that she does purchase kerosene every 3 days
+Expenditure,Fixed,Cost of preparing soup for the household,"₦ 2,000",Respondent disclosed that she does purchase and prepare soup every 3 days
+Expenditure,Variable,Cost of purchasing carbonated drinks for sell in her shop.,"₦ 11,800",
