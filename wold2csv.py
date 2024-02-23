@@ -73,7 +73,7 @@ def convert_table_to_csv_file(input_docx, csv_file_header):
                 transaction_type = "Variable"
 
             # Skip specific content
-            if transaction_name in ["Fixed weekly income", "Variable weekly income", "Variable weekly income income", "VARIABLE INCOME", "Variable income", "Total:", "Total", "Comments", "COMMENTS", "Comment", "", "#"]:
+            if transaction_name in ["FIXED WEEKLY INCOME", "Fixed weekly income", "Variable weekly income", "Variable weekly income income", "VARIABLE WEEKLY INCOME", "VARIABLE WEELY INCOME", "VARIABLE INCOME", "Variable income", "Total:", "Total", "Comments", "COMMENTS", "Comment", "", "#"]:
                 continue
 
             # Combine the extracted data into a row and add it to the CSV file data
@@ -97,7 +97,7 @@ def convert_table_to_csv_file(input_docx, csv_file_header):
                 transaction_type = "Variable"
 
             # Skip specific content
-            if transaction_name in ["Fixed weekly expenditure", "Variable weekly expenditure", "VARIABLE EXPENDITURE", "Total:", "Total", "Comments", "COMMENTS", "Comment", "", "#"]:
+            if transaction_name in ["FIXED WEEKLY EXPENDITURE", "Fixed weekly expenditure", "Variable weekly expenditure", "VARIABLE WEEKLY EXPENDITURE", "VARIABLE EXPENDITURE", "Total:", "Total", "Comments", "COMMENTS", "Comment", "", "#"]:
                 continue
 
             # Combine the extracted data into a row and add it to the CSV file data
