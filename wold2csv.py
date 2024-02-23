@@ -17,8 +17,8 @@ def extract_info_from_docx(docx_file):
     doc = Document(docx_file)
     text = '\n'.join([paragraph.text for paragraph in doc.paragraphs])
     respondent_id_match = re.search(r'(ML\d+.*WK\s*\d+|BL\d+.*WK\s*\d+)', text)
-    # date_match = re.search(r'(?i)(?:Date|DATE):\s*((?:\d{1,2}(?:st|nd|rd|th)?\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})|(?:\d{1,2}/\d{1,2}/\d{2,4})|(?:\d{1,2}[./]\d{1,2}[./]\d{2,4}))\s*[_]*', text)
-    date_match = re.search(r'(?i)(?:Date|DATE):\s*((?:\d{1,2}(?:st|nd|rd|th)?\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})|(?:\d{1,2}/\d{1,2}/\d{2,4})|(?:\d{1,2}[./]\d{1,2}[./]\d{2,4})(?:\s*[_]*)*)',
+    date_match = re.search(
+        r'(?i)(?:Date|DATE):\s*((?:\d{1,2}(?:st|nd|rd|th)?\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})|(?:\d{1,2}/\d{1,2}/\d{2,4})|(?:\d{1,2}[./-]\d{1,2}[./-]\d{2,4})(?:\s*[_]*)*)',
         text)
 
     week_match = re.search(r'-WK\s*(\d+)', text, re.IGNORECASE)
@@ -73,7 +73,7 @@ def convert_table_to_csv_file(input_docx, csv_file_header):
                 transaction_type = "Variable"
 
             # Skip specific content
-            if transaction_name in ["Fixed weekly income", "Variable weekly income", "Total:", "Total", "Comments", "", "#"]:
+            if transaction_name in ["Fixed weekly income", "Variable weekly income", "Variable weekly income income", "VARIABLE INCOME", "Variable income", "Total:", "Total", "Comments", "COMMENTS", "Comment", "", "#"]:
                 continue
 
             # Combine the extracted data into a row and add it to the CSV file data
@@ -97,7 +97,7 @@ def convert_table_to_csv_file(input_docx, csv_file_header):
                 transaction_type = "Variable"
 
             # Skip specific content
-            if transaction_name in ["Fixed weekly expenditure", "Variable weekly expenditure", "Total:", "Total", "Comments", "", "#"]:
+            if transaction_name in ["Fixed weekly expenditure", "Variable weekly expenditure", "VARIABLE EXPENDITURE", "Total:", "Total", "Comments", "COMMENTS", "Comment", "", "#"]:
                 continue
 
             # Combine the extracted data into a row and add it to the CSV file data
