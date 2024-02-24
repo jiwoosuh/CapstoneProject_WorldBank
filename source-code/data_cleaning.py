@@ -63,5 +63,8 @@ df['Member_Status'] = df['Member_Status'].apply(clean_mem_status)
 df['State'] = df['State'].str.lower()
 df['State'] = df['State'].replace({'abia baseline': 'abia'})
 df['Region'] = df['Region'].str.lower()
+df['Transaction_Name'] = df['Transaction_Name'].str.replace('₦', '')
 
 print(df.head())
+
+df.to_csv('Financial_Diaries.csv', index=False)
