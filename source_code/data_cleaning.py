@@ -54,17 +54,3 @@ def clean_mem_status(mem_status):
 # Clean member status into only two (WAG/NON WAG)
 def clean_transaction_amount(amount_str):
     return pd.to_numeric(re.sub(r'[^\d.]', '', amount_str))
-
-
-df['Formatted_Date'] = df['Date'].apply(clean_date_format)
-print(set(df.Formatted_Date))
-df['Transaction_Amount'] = df['Transaction_Amount'].apply(clean_transaction_amount)
-df['Member_Status'] = df['Member_Status'].apply(clean_mem_status)
-df['State'] = df['State'].str.lower()
-df['State'] = df['State'].replace({'abia baseline': 'abia'})
-df['Region'] = df['Region'].str.lower()
-df['Transaction_Name'] = df['Transaction_Name'].str.replace('₦', '')
-
-print(df.head())
-
-df.to_csv('Financial_Diaries.csv', index=False)
