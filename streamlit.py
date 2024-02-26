@@ -7,14 +7,20 @@ from source_code.word2csv import get_file_locations, extract_info_from_docx, con
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
 
 def main():
-    st.title("Project Presentation")
+    st.title("Capstone Project")
+    st.subheader("Social Sustainability and Inclusion")
+    st.write("Nigeria For Women Program Scale-up Project with World Bank")
+    st.write("Team Members: Brooklyn Chen, Jiwoo Suh, Sanjana Godolkar")
+    st.write("Trello board URL: [Trello Board](https://trello.com/b/ytzd5Ve7/dats6501-brooklyn-chen-sanjana-godolkar)")
 
     # Sidebar navigation
-    page = st.sidebar.selectbox("Select a page", ["Project Overview", "Data Preprocessing", "Analysis", "Conclusion"])
+    page = st.sidebar.selectbox("Select a page", ["Project Overview", "Methodology" ,"Data Preprocessing", "Analysis", "Conclusion"])
 
     # Page content
     if page == "Project Overview":
         project_overview()
+    elif page == "Methodology":
+        methodology()
     elif page == "Data Preprocessing":
         data_preprocessing()
     elif page == "Analysis":
@@ -24,7 +30,68 @@ def main():
 
 def project_overview():
     st.header("Project Overview")
-    # Add content for Project Overview page
+    ## 1. Introduction
+    st.subheader("1. Introduction")
+    st.markdown("""
+    This capstone seeks to digitize the financial processes of the Women Affinity
+    Groups (WAGs) under the Nigeria for Women Program Scale Up (NFWP-SU)
+    project. By structuring digitized financial transaction data, this will improve the efficiency for WAGs to
+    harness technology for savings, credit access, and overall economic empowerment
+    in order to help low-income women.
+    """)
+
+    ## 2. Background and Context
+    st.subheader("2. Background and Context")
+    st.markdown("""
+    WAGs have been pivotal in fostering women's financial and social capital in
+    Nigeria. They provide a platform for savings, mutual lending, and skill
+    development. Despite their success, these groups face challenges in manual
+    financial transactions, which are time-consuming and prone to errors. The
+    digitization of these groups promises to streamline operations and expand their
+    impact.
+    """)
+
+    ## 3. Problem Description
+    st.subheader("3. Problem Description")
+    st.markdown("""
+    The project addresses the need for an efficient, transparent, and scalable solution to
+    manage the financial activities of WAGs. By digitizing financial process, the
+    project aims to automate savings, loan repayments, and other financial
+    transactions, thereby enhancing the operational efficiency and financial
+    empowerment of the groups.
+    """)
+
+    ## 4. Objectives and Goals
+    st.subheader("4. Objectives and Goals")
+    st.markdown("""
+    - Digitize unstructured raw data into analyzable data.
+    - Develop a dashboard to visualize financial transactions for further insights.
+    - Measure the impact of digitization on the efficiency of WAGs and the economic
+      empowerment of its members.
+    """)
+
+def methodology():
+    st.header("Methodology")
+
+    # Tasks done
+    st.subheader("Tasks Completed:")
+    st.markdown("""
+    - **Data Preprocessing:**
+      We extracted text and tables from docx documents and restructured them into CSV files to analyze. 
+      Also, data cleaning was completed to match the format of the features including date, state name, and member status.
+    """)
+
+    # Tasks in progress
+    st.subheader("Tasks In Progress:")
+    st.markdown("""
+    - **Text Classification and Keyword Extraction:**
+      We are trying to analyze the text information in the financial transaction data to develop insights into the data 
+      by classifying them into several categories and extracting the main keywords.
+
+    - **Handwriting Recognition and OCR:**
+      We are trying to develop a computer vision model to recognize the handwriting financial transaction data from 7 PDF files 
+      and include them in our combined CSV data.
+    """)
 
 def data_preprocessing():
     st.header("Data Preprocessing")
