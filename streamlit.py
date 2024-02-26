@@ -75,8 +75,8 @@ def data_preprocessing():
 def analysis():
     st.header("Analysis")
     st.subheader("Tableau Dashboard")
-    tableau_url = "https://your-tableau-dashboard-url"
-    components.iframe(tableau_url, height=800, scrolling=True)
+    # tableau_url = "https://your-tableau-dashboard-url"
+    # components.iframe(tableau_url, height=800, scrolling=True)
 
 def conclusion():
     st.header("Conclusion")
