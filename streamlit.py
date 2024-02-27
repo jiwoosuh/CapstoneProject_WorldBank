@@ -23,7 +23,7 @@ def main():
         project_overview()
     elif page == "Methodology":
         methodology()
-    elif page == "Data Preprocessing - Data Structuring":
+    elif page == "Data Preprocessing":
         data_preprocessing()
     elif page == "OCR Handwritten PDF":
         pdf_ocr()
