@@ -16,7 +16,7 @@ def main():
     st.write("Trello board URL: [Trello Board](https://trello.com/b/ytzd5Ve7/dats6501-brooklyn-chen-sanjana-godolkar)")
 
     # Sidebar navigation
-    page = st.sidebar.selectbox("Select a page", ["Project Overview", "Methodology" ,"Data Preprocessing", "OCR Handwritten PDF", "Analysis", "Conclusion"])
+    page = st.sidebar.selectbox("Select a page", ["Project Overview", "Methodology","Data Preprocessing", "OCR Handwritten PDF", "Analysis", "Conclusion"])
 
     # Page content
     if page == "Project Overview":
@@ -99,18 +99,21 @@ def methodology():
 
 def pdf_ocr():
     st.header("OCR Handwritten PDF")
-    data_folder = Path(os.getcwd())/'Data'
-    # glob_pattern = '**/*.pdf'
+    data_folder = Path(os.getcwd()) / 'Data'
     pdf_files = get_list_of_files(data_folder, '**/*.pdf', '.pdf')
-    for pdf_file in pdf_files:
-        print(pdf_file)
 
     for pdf_file in pdf_files:
         st.write(f"Processing PDF: {pdf_file}")
         images = pdf_to_images(pdf_file)
 
         for idx, image in enumerate(images):
+            # Display each page of the PDF
+            st.image(image, caption=f"Page {idx + 1}", use_column_width=True)
+
+            # Perform OCR on the image
             text = ocr_handwritten_text(image)
+
+            # Display OCR results
             st.write(f"Page {idx + 1} OCR Result:\n{text}\n")
 
 

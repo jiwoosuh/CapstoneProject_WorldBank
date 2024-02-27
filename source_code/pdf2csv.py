@@ -13,7 +13,7 @@ def get_list_of_files(data_folder, glob_pattern, format):
     return [file for file in list(filepath_gen) if file.is_file() and file.suffix.lower() == format]
 
 
-data_folder = Path(os.getcwd()).parent / 'Financial_Diaries'
+data_folder = Path(os.getcwd()).parent / 'Data'
 glob_pattern = '**/*.pdf'
 
 pdf_files = get_list_of_files(data_folder, glob_pattern, '.pdf')
