@@ -2,10 +2,11 @@ import streamlit as st
 import os
 import csv
 import pandas as pd
+from pathlib import Path
 from streamlit.components.v1 import components
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
-from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, ocr_result, get_list_of_files
+from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
 
 def main():
     st.title("Capstone Project")
@@ -15,7 +16,7 @@ def main():
     st.write("Trello board URL: [Trello Board](https://trello.com/b/ytzd5Ve7/dats6501-brooklyn-chen-sanjana-godolkar)")
 
     # Sidebar navigation
-    page = st.sidebar.selectbox("Select a page", ["Project Overview", "Methodology" ,"Data Preprocessing", "Analysis", "Conclusion"])
+    page = st.sidebar.selectbox("Select a page", ["Project Overview", "Methodology" ,"Data Preprocessing", "OCR Handwritten PDF", "Analysis", "Conclusion"])
 
     # Page content
     if page == "Project Overview":
@@ -98,15 +99,19 @@ def methodology():
 
 def pdf_ocr():
     st.header("OCR Handwritten PDF")
-    data_folder = os.getcwd()
-    glob_pattern = '**/*.pdf'
-    pdf_files = get_list_of_files(data_folder, glob_pattern, '.pdf')
+    data_folder = Path(os.getcwd())/'Data'
+    # glob_pattern = '**/*.pdf'
+    pdf_files = get_list_of_files(data_folder, '**/*.pdf', '.pdf')
     for pdf_file in pdf_files:
         print(pdf_file)
 
     for pdf_file in pdf_files:
         st.write(f"Processing PDF: {pdf_file}")
-        ocr_result(pdf_file)
+        images = pdf_to_images(pdf_file)
+
+        for idx, image in enumerate(images):
+            text = ocr_handwritten_text(image)
+            st.write(f"Page {idx + 1} OCR Result:\n{text}\n")
 
 
 def data_preprocessing():
