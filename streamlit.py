@@ -5,6 +5,7 @@ import pandas as pd
 from streamlit.components.v1 import components
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
+from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, ocr_result, get_list_of_files
 
 def main():
     st.title("Capstone Project")
@@ -21,8 +22,10 @@ def main():
         project_overview()
     elif page == "Methodology":
         methodology()
-    elif page == "Data Preprocessing":
+    elif page == "Data Preprocessing - Data Structuring":
         data_preprocessing()
+    elif page == "OCR Handwritten PDF":
+        pdf_ocr()
     elif page == "Analysis":
         analysis()
     elif page == "Conclusion":
@@ -93,6 +96,19 @@ def methodology():
       and include them in our combined CSV data.
     """)
 
+def pdf_ocr():
+    st.header("OCR Handwritten PDF")
+    data_folder = os.getcwd()
+    glob_pattern = '**/*.pdf'
+    pdf_files = get_list_of_files(data_folder, glob_pattern, '.pdf')
+    for pdf_file in pdf_files:
+        print(pdf_file)
+
+    for pdf_file in pdf_files:
+        st.write(f"Processing PDF: {pdf_file}")
+        ocr_result(pdf_file)
+
+
 def data_preprocessing():
     st.header("Data Preprocessing")
 
@@ -129,7 +145,7 @@ def data_preprocessing():
     df['Transaction_Name'] = df['Transaction_Name'].str.replace('₦', '')
 
     df.to_csv('Financial_Diaries.csv', index=False)
-    st.success('Data cleaning complete. Financial_Diaries.csv saved.')
+    st.success('Data cleaning is completed. Financial_Diaries.csv saved.')
     # Display processed data
     if os.path.exists('Financial_Diaries.csv'):
         st.subheader("Processed Data")
