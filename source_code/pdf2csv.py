@@ -59,6 +59,8 @@ def ocr_result(pdf_path):
         print(f"Page {idx + 1} OCR Result:\n{text}\n")
 
 
+
+
 # if __name__ == "__main__":
 #     for pdf_file in pdf_files:
 #     main(pdf_file)
