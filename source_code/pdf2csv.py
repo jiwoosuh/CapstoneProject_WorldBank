@@ -2,16 +2,31 @@ import os
 from pathlib import Path
 
 print(os.getcwd())
+def get_list_of_files(data_folder, glob_pattern, format):
+    '''
+    :param data_folder:
+    :param glob_pattern: eg. '**/*.pdf'
+    :param format: string starts with . (eg. '.pdf')
+    :return: a list of found files
+    '''
+    filepath_gen = data_folder.glob(glob_pattern)
+    return [file for file in list(filepath_gen) if file.is_file() and file.suffix.lower() == format]
+
+
 data_folder = Path(os.getcwd()).parent / 'Financial_Diaries'
 glob_pattern = '**/*.pdf'
-filepath_gen = data_folder.glob(glob_pattern)
 
-pdf_files = [file for file in list(filepath_gen) if file.is_file() and file.suffix.lower() == '.pdf']
-
+pdf_files = get_list_of_files(data_folder, glob_pattern, '.pdf')
 for pdf_file in pdf_files:
     print(pdf_file)
 
 print(f'Total PDF files: {len(pdf_files)}')
+
+docx_files = get_list_of_files(data_folder, '**/*.docx', '.docx')
+for docx_file in docx_files:
+    print(docx_file)
+
+print(f'Total docx files: {len(docx_files)}')
 
 #%%
 import fitz  # PyMuPDF
@@ -36,7 +51,7 @@ def ocr_handwritten_text(image):
     return text
 
 
-def main(pdf_path):
+def ocr_result(pdf_path):
     images = pdf_to_images(pdf_path)
 
     for idx, image in enumerate(images):
@@ -52,5 +67,5 @@ def main(pdf_path):
 pdf_path = "/Users/jiwoosuh/Desktop/JIWOO/SP24/Capstone_WB/Financial_Diaries/Baseline Financial Diaries 2/Kebbi/FDs/Ngaski/WAG/kebbi_ngaski_wara_FD_WAG_10122021. week 1.pdf"
 
 if __name__ == "__main__":
-    main(pdf_path)
+    ocr_result(pdf_path)
 
