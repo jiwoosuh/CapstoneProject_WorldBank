@@ -9,28 +9,40 @@ from source_code.data_cleaning import clean_date_format, fix_year_format, clean_
 from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
 
 def main():
-    st.title("Capstone Project")
-    st.subheader("Social Sustainability and Inclusion")
-    st.write("Nigeria For Women Program Scale-up Project with World Bank")
-    st.write("Team Members: Brooklyn Chen, Jiwoo Suh, Sanjana Godolkar")
-    st.write("Trello board URL: [Trello Board](https://trello.com/b/ytzd5Ve7/dats6501-brooklyn-chen-sanjana-godolkar)")
+    st.title("🇳🇬 Nigeria For Women Program Scale-up Project")
+    st.subheader("GWU Data Science Capstone Project - 2024 Spring")
+    st.write("With World Bank 🌐 Social Sustainability and Inclusion")
+    st.write("👩‍💻👩‍💻👩‍💻: Brooklyn Chen, Jiwoo Suh, Sanjana Godolkar")
+    st.write("Instructor: Abdi Awl")
+    st.write("[Trello Board](https://trello.com/b/ytzd5Ve7/dats6501-brooklyn-chen-sanjana-godolkar)")
 
     # Sidebar navigation
-    page = st.sidebar.selectbox("Select a page", ["Project Overview", "Methodology","Data Preprocessing", "OCR Handwritten PDF", "Analysis", "Conclusion"])
+    page = st.sidebar.selectbox("Select a page",
+                                ["Project Overview", "Main Tasks", "Methodology",
+                                 "Data Preprocessing", "OCR Handwritten PDF", "Transaction Analysis",
+                                 "Visual Analysis", "Challenges","Conclusion", "Further Tasks"])
 
     # Page content
     if page == "Project Overview":
         project_overview()
+    elif page == "Main Tasks":
+        tasks()
     elif page == "Methodology":
         methodology()
     elif page == "Data Preprocessing":
         data_preprocessing()
     elif page == "OCR Handwritten PDF":
         pdf_ocr()
-    elif page == "Analysis":
-        analysis()
+    elif page == "Transaction Analysis":
+        transaction_analysis()
+    elif page == "Visual Analysis":
+        visualization()
+    elif page == "Challenges":
+        challenges()
     elif page == "Conclusion":
         conclusion()
+    elif page == "Further Tasks":
+        further_analysis()
 
 def project_overview():
     st.header("Project Overview")
@@ -74,28 +86,76 @@ def project_overview():
       empowerment of its members.
     """)
 
+def tasks():
+    st.header("Main Tasks")
+
+    tasks_info = """
+
+    ### Data Preprocessing - Docx2CSV, RegEx
+    - **Description:** This task involves preparing the raw data for analysis. Two methods are employed - using the `Docx2CSV` utility and employing Regular Expressions (RegEx).
+    - **Objective:** To convert data from Word documents (docx) into a more structured format (CSV) using `Docx2CSV` and perform additional preprocessing using RegEx for tasks like changing date formats.
+    - **Significance:** This step is crucial for transforming unstructured data into a format suitable for analysis, ensuring uniformity and cleanliness in the dataset.
+
+    ### OCR Handwritten PDF
+    - **Description:** Optical Character Recognition (OCR) is applied to extract text from handwritten PDF documents.
+    - **Objectives:**
+        - Implement basic OCR techniques for extracting text from images.
+        - Utilize unstructured I/O for partitioning PDFs.
+        - Use the `pdf2image` library combined with transformers for advanced OCR on PDFs.
+    - **Significance:** OCR on handwritten PDFs helps convert non-digital information into a format suitable for analysis, contributing to a comprehensive dataset.
+
+    ### Transaction NLP Data Analysis
+    - **Description:** Natural Language Processing (NLP) techniques are applied to analyze transaction data.
+    - **Objectives:**
+        - Apply traditional methods like TF-IDF (Term Frequency-Inverse Document Frequency) and Naive Bayes (NB) for analysis.
+        - Implement zero-shot classification using transformer models.
+    - **Significance:** Extracting insights from transactional data involves advanced NLP techniques, providing a deeper understanding of the context and sentiment associated with transactions.
+    """
+
+    st.markdown(tasks_info)
+
+
 def methodology():
     st.header("Methodology")
 
-    # Tasks done
-    st.subheader("Tasks Completed:")
-    st.markdown("""
-    - **Data Preprocessing:**
-      We extracted text and tables from docx documents and restructured them into CSV files to analyze. 
-      Also, data cleaning was completed to match the format of the features including date, state name, and member status.
-    """)
+    methodology_info = """
 
-    # Tasks in progress
-    st.subheader("Tasks In Progress:")
-    st.markdown("""
-    - **Text Classification and Keyword Extraction:**
-      We are trying to analyze the text information in the financial transaction data to develop insights into the data 
-      by classifying them into several categories and extracting the main keywords.
+    ### Data Preprocessing - Docx2CSV
+    - **Description:** The `Docx2CSV` custome function is utilized for converting Word documents to CSV format.
+    - **Components:**
+        - **Docx package:** Utilized for reading and extracting text and table data from Word documents.
+    - **Significance:** This method facilitates the extraction of tabular data from Word documents and prepares it for further analysis.
 
-    - **Handwriting Recognition and OCR:**
-      We are trying to develop a computer vision model to recognize the handwriting financial transaction data from 7 PDF files 
-      and include them in our combined CSV data.
-    """)
+    ### Data Preprocessing - RegEx
+    - **Description:** Regular Expressions are employed to manipulate and clean data, specifically for changing date formats.
+    - **Components:**
+        - **Changing date format:** RegEx is used to modify the date formats present in the dataset.
+    - **Significance:** RegEx provides a powerful tool for pattern-matching and manipulation, crucial for ensuring consistency in date representations.
+
+    ### OCR Handwritten PDF
+    - **Description:** OCR on handwritten PDFs involves several stages, including basic OCR, unstructured I/O for partitioning, and advanced OCR using `pdf2image` and transformers.
+    - **Components:**
+        - **Basic OCR:** Initial extraction of text from images.
+        - **Unstructured I/O:** Partitioning PDFs into manageable sections.
+        - **pdf2image + transformers:** Utilizing a combination of libraries for advanced OCR.
+    - **Significance:** This multi-step approach ensures accurate extraction of text from handwritten PDFs, overcoming challenges associated with unstructured data.
+
+    ### Transaction NLP Analysis
+    - **Description:** Transactional data is subjected to NLP analysis using both traditional methods and transformer-based models.
+    - **Components:**
+        - **Traditional method:** TF-IDF and Naive Bayes for baseline analysis.
+        - **Zero-shot classification:** Leveraging transformer models for advanced NLP analysis.
+    - **Significance:** The combination of traditional and modern NLP techniques provides a comprehensive understanding of the textual information in transaction data.
+
+    ### Data Visualization + Web App
+    - **Description:** Visualization tools like Tableau and Streamlit are employed for creating interactive data visualizations and web applications.
+    - **Components:**
+        - **Tableau:** Used for creating visually appealing and informative dashboards.
+        - **Streamlit:** Utilized for building interactive web applications for data exploration.
+    - **Significance:** Visualization enhances the interpretability of the data, while web apps provide an accessible interface for users to interact with the findings.
+    """
+
+    st.markdown(methodology_info)
 
 def pdf_ocr():
     st.header("OCR Handwritten PDF")
@@ -161,9 +221,10 @@ def data_preprocessing():
         st.dataframe(df)
 
 
+def transaction_analysis():
+    st.header("Transactions NLP Analysis")
 
-
-def analysis():
+def visualization():
     import streamlit as st
     import numpy as np
     import pandas as pd
@@ -314,9 +375,37 @@ def analysis():
     # Display the word cloud image using Streamlit
     st.image(wordcloud.to_array(), use_column_width=True)
 
+
+def challenges():
+    st.header("Challenge")
+
+    challenge_info = """
+
+    ### Communication with WB
+    - **Description:** This challenge involves effective communication with the World Bank to shape and align the project with their expectations and requirements.
+    - **Significance:** Ensuring clear communication helps in understanding and meeting the objectives set by the World Bank, leading to a successful collaboration.
+
+    ### Unstructured Data
+    - **Description:** The project deals with unstructured data in the form of MS Word docx files and handwritten PDF files.
+    - **Challenges:**
+        - **MS Word docx files:** Extraction of relevant information from unstructured Word documents.
+        - **Handwritten PDF files:** OCR and extraction of text from handwritten PDFs.
+    - **Significance:** Overcoming challenges related to unstructured data is crucial for obtaining valuable insights and ensuring data accuracy.
+
+    ### Analysis & Deriving Insights
+    - **Description:** The challenge involves the analysis of data and deriving meaningful insights from the processed information.
+    - **Significance:** Analyzing the data and extracting insights contribute to the project's goals, providing valuable information for decision-making.
+
+    """
+
+    st.markdown(challenge_info)
+
 def conclusion():
     st.header("Conclusion")
     # Add content for Conclusion page
+
+def further_analysis():
+    st.header("further_analysis")
 
 if __name__ == "__main__":
     main()
