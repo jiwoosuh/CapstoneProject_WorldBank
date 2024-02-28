@@ -164,10 +164,155 @@ def data_preprocessing():
 
 
 def analysis():
+    import streamlit as st
+    import numpy as np
+    import pandas as pd
+    from wordcloud import WordCloud
+    import matplotlib.pyplot as plt
+    from PIL import Image
+    from io import BytesIO
+    import seaborn as sns
+    from scipy import stats
+
     st.header("Analysis")
-    st.subheader("Tableau Dashboard")
+    # st.subheader("Tableau Dashboard")
     # tableau_url = "https://your-tableau-dashboard-url"
     # components.iframe(tableau_url, height=800, scrolling=True)
+
+    # Load the dataset
+    df = pd.read_csv("Financial_Diaries.csv", na_values={'transaction_comment': ''},
+                     usecols=lambda column: column != 'Date', keep_default_na=False)
+    df = df[df['Transaction_Amount'] != 0]
+
+    # Convert columns to appropriate data types
+    df['FD_Name'] = df['FD_Name'].astype('category')
+    df['Member_Status'] = df['Member_Status'].astype('category')
+    df['Week'] = df['Week'].astype('category')
+    df['Transaction_Nature'] = df['Transaction_Nature'].astype('category')
+    df['Transaction_Type'] = df['Transaction_Type'].astype('category')
+    df['Formatted_Date'] = pd.to_datetime(df['Formatted_Date'], format='%d/%m/%Y', errors='coerce')
+    df['Formatted_Date'] = df['Formatted_Date'].dt.date
+
+    # Dataset Information
+    st.subheader("Dataset Information")
+    st.write(f"Number of Rows: {df.shape[0]}")
+    st.write(f"Number of Columns: {df.shape[1]}")
+
+    # Display first 5 unique values for each column
+    st.subheader("Data Structure")
+    info_df = pd.DataFrame(columns=["Column Name", "Data Type", "Non-Null Count", "Unique Values"])
+    for column in df.columns:
+        info_series = df[column].describe()
+        data_type = df[column].dtype
+        unique_values = df[column].unique()[:5]
+        info_df = info_df.append({"Column Name": column,
+                                  "Data Type": data_type,
+                                  "Non-Null Count": info_series["count"],
+                                  "Unique Values": ", ".join(map(str, unique_values))},
+                                 ignore_index=True)
+    st.write(info_df)
+
+    # Plot
+    # Calculate mean, median, and mode
+    mean_val = df["Transaction_Amount"].mean()
+    median_val = df["Transaction_Amount"].median()
+    mode_val = stats.mode(df["Transaction_Amount"])[0][0]
+
+    # Plot histogram and density plot
+    st.subheader('Histogram and Density Plot with Mean, Median, and Mode')
+    plt.figure(figsize=(10, 6))
+    sns.histplot(df["Transaction_Amount"], kde=True, color='skyblue')
+    plt.axvline(mean_val, color='red', linestyle='dashed', linewidth=1, label='Mean: {:.2f}'.format(mean_val))
+    plt.axvline(median_val, color='green', linestyle='dashed', linewidth=1, label='Median: {:.2f}'.format(median_val))
+    plt.axvline(mode_val, color='orange', linestyle='dashed', linewidth=1, label='Mode: {:.2f}'.format(mode_val))
+    plt.title('Histogram and Density Plot of {}'.format("Transaction_Amount"))
+    plt.xlabel('Data Values')
+    plt.ylabel('Frequency / Density')
+    plt.legend()
+    combined_fig = plt.gcf()
+    st.pyplot(combined_fig)
+
+    st.write("Due to the right-skewed nature of the Transaction_Amount data, we employ log transformation to achieve a more symmetrical distribution. This transformation mitigates the impact of large values on the distribution, compresses the range of values, and stabilizes variance. Additionally, it promotes linearity in the relationship between variables, a desirable trait in statistical modeling and analysis.")
+
+    df['Transaction_Amount_log'] = np.log(df['Transaction_Amount'])
+
+    # Calculate mean, median, and mode
+    mean_val = df["Transaction_Amount_log"].mean()
+    median_val = df["Transaction_Amount_log"].median()
+    mode_val = stats.mode(df["Transaction_Amount_log"])[0][0]
+
+    # Plot histogram and density plot after log
+    st.subheader('Histogram and Density of Transaction_Amount_log')
+    plt.figure(figsize=(10, 6))
+    sns.histplot(df["Transaction_Amount_log"], kde=True, color='skyblue')
+    plt.axvline(mean_val, color='red', linestyle='dashed', linewidth=1, label='Mean: {:.2f}'.format(mean_val))
+    plt.axvline(median_val, color='green', linestyle='dashed', linewidth=1, label='Median: {:.2f}'.format(median_val))
+    plt.axvline(mode_val, color='orange', linestyle='dashed', linewidth=1, label='Mode: {:.2f}'.format(mode_val))
+    plt.title('Histogram and Density Plot of {}'.format("Transaction_Amount_log"))
+    plt.xlabel('Data Values')
+    plt.ylabel('Frequency / Density')
+    plt.legend()
+    combined_fig = plt.gcf()
+    st.pyplot(combined_fig)
+
+
+    st.subheader("Average Transaction Amount by Members Status")
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
+
+    # Filter data for Member_Status == "NON WAG" and plot boxplot
+    non_wag_data = df[df["Member_Status"] == "NON WAG"]
+    non_wag_data_grouped = non_wag_data.groupby("Transaction_Type")["Transaction_Amount_log"]
+
+    boxprops_non_wag = dict(facecolor="lightblue", edgecolor="black")
+
+    axes[0].boxplot([non_wag_data_grouped.get_group("Income"), non_wag_data_grouped.get_group("Expenditure")],
+                    vert=True,
+                    patch_artist=True,
+                    labels=["Income", "Expenditure"],
+                    boxprops=boxprops_non_wag)
+    axes[0].set_title("NON WAG")
+
+    # Filter data for Member_Status == "WAG" and plot boxplot
+    wag_data = df[df["Member_Status"] == "WAG"]
+    wag_data_grouped = wag_data.groupby("Transaction_Type")["Transaction_Amount_log"]
+
+    # Plot boxplot for WAG
+    boxprops_wag = dict(facecolor="lightpink", edgecolor="black")
+
+    axes[1].boxplot([wag_data_grouped.get_group("Income"), wag_data_grouped.get_group("Expenditure")],
+                    vert=True,
+                    patch_artist=True,
+                    labels=["Income", "Expenditure"],
+                    boxprops=boxprops_wag)
+    axes[1].set_title("WAG")
+
+    # Add labels and titles
+    for ax in axes:
+        ax.set_ylabel("Transaction Amount")
+        ax.set_xlabel("Transaction Type")
+        ax.yaxis.grid(True)
+
+    # Display the plot using Streamlit
+    st.pyplot(fig)
+
+
+    # Word Cloud
+    st.subheader("Word Cloud for Transaction Names")
+    custom_stopwords = ["the", "and", "to", "of", "in", "for", "on", "with", "by", "from", "at", "is", "are", "was",
+                        "were", "it", "that", "this", "an", "as", "or", "be", "have", "has", "not", "no", "can",
+                        "could", "but", "so", "if", "when", "where", "how", "why", "which", "cost", "income", "weekly"]
+
+    transaction_names = df['Transaction_Name'].str.lower().str.split()
+    transaction_names = [[word for word in words if word not in custom_stopwords] for words in transaction_names]
+    transaction_names_str = ' '.join([' '.join(words) for words in transaction_names])
+
+    # Create the word cloud image
+    wordcloud = WordCloud(width=800, height=800,
+                          background_color='white',
+                          min_font_size=10).generate(transaction_names_str)
+
+    # Display the word cloud image using Streamlit
+    st.image(wordcloud.to_array(), use_column_width=True)
 
 def conclusion():
     st.header("Conclusion")
