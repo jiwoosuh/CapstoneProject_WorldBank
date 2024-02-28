@@ -6,23 +6,20 @@ os.chdir(Path(os.getcwd()).parent)
 df = pd.read_csv('Financial_Diaries.csv')
 
 from transformers import pipeline
-classifier = pipeline("zero-shot-classification",
-                      model="facebook/bart-large-mnli")
 
 classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
 def classify_transaction(transaction_name):
     # Candidate labels based on the provided categories
     candidate_labels = [
-        'Retail, Business and Trade',
+        'Business',
         'Agriculture',
-        'Travel and Transport',
+        'Travel',
         'Gifts',
         'Household',
         'Consumables',
         'Financial Management',
         'Health Care',
-        'WAG',
         'Personal',
         'Miscellaneous'
     ]
@@ -31,7 +28,7 @@ def classify_transaction(transaction_name):
 
 df['Transaction_Category'] = df['Transaction_Name'].apply(classify_transaction)
 
-print(df[['Transaction_Name', 'Predicted_Label']].head(10))
+print(df[['Transaction_Name', 'Transaction_Category']].head(10))
 
 
 
