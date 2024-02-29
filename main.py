@@ -37,5 +37,6 @@ df['State'] = df['State'].str.lower()
 df['State'] = df['State'].replace({'abia baseline': 'abia'})
 df['Region'] = df['Region'].str.lower()
 df['Transaction_Name'] = df['Transaction_Name'].str.replace('₦', '')
+df['Region'] = df['Region'].replace('ijebu ne', 'ijebu north east')
 
 df.to_csv('Financial_Diaries.csv', index=False)
