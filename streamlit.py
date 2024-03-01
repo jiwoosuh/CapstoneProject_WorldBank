@@ -233,8 +233,9 @@ def visualization():
     import matplotlib.pyplot as plt
     import seaborn as sns
     from scipy import stats
+    from scipy.stats import shapiro, probplot
 
-    st.header("Analysis")
+    st.header("Dataset Information")
     # st.subheader("Tableau Dashboard")
     # tableau_url = "https://your-tableau-dashboard-url"
     # components.iframe(tableau_url, height=800, scrolling=True)
@@ -254,17 +255,17 @@ def visualization():
     df['Formatted_Date'] = df['Formatted_Date'].dt.date
 
     # Dataset Information
-    st.subheader("Dataset Information")
+    # st.subheader("Dataset Information")
     st.write(f"Number of Rows: {df.shape[0]}")
     st.write(f"Number of Columns: {df.shape[1]}")
 
-    # Display first 5 unique values for each column
+    # Display first 6 unique values for each column
     st.subheader("Data Structure")
     info_df = pd.DataFrame(columns=["Column Name", "Data Type", "Non-Null Count", "Unique Values"])
     for column in df.columns:
         info_series = df[column].describe()
         data_type = df[column].dtype
-        unique_values = df[column].unique()[:5]
+        unique_values = df[column].unique()[:6]
         info_df = info_df.append({"Column Name": column,
                                   "Data Type": data_type,
                                   "Non-Null Count": info_series["count"],
@@ -272,8 +273,10 @@ def visualization():
                                  ignore_index=True)
     st.write(info_df)
 
+    st.divider()
 
     # Plot
+    st.header('Visual Comparison and Clustering Analysis for Transaction Amount')
     option = st.sidebar.selectbox(
         'Income or Expenditure',
         ('All', 'Income', 'Expenditure'))
@@ -289,7 +292,7 @@ def visualization():
     median_val = df_filtered["Transaction_Amount"].median()
     mode_val = stats.mode(df_filtered["Transaction_Amount"])[0][0]
 
-    st.subheader('Histogram and Density Plot with Mean, Median, and Mode')
+    st.subheader('Distribution of log-transformed Transaction Amount')
     plt.figure(figsize=(10, 6))
     sns.histplot(df_filtered["Transaction_Amount"], kde=True, color='skyblue')
     plt.axvline(mean_val, color='red', linestyle='dashed', linewidth=1, label='Mean: {:.2f}'.format(mean_val))
@@ -311,7 +314,7 @@ def visualization():
     median_val = df_filtered["Transaction_Amount_log"].median()
     mode_val = stats.mode(df_filtered["Transaction_Amount_log"])[0][0]
 
-    st.subheader('Histogram and Density of log-transformed Transaction Amount')
+    st.subheader('Distribution of log-transformed Transaction Amount')
     plt.figure(figsize=(10, 6))
     sns.histplot(df_filtered["Transaction_Amount_log"], kde=True, color='skyblue')
     plt.axvline(mean_val, color='red', linestyle='dashed', linewidth=1, label='Mean: {:.2f}'.format(mean_val))
@@ -323,7 +326,6 @@ def visualization():
     plt.legend()
     combined_fig = plt.gcf()
     st.pyplot(combined_fig)
-
 
     # Word Cloud
     st.subheader("Word Cloud for Transaction Name")
@@ -342,15 +344,15 @@ def visualization():
 
 
     # Split violin plot
-    st.subheader("Split Violin Plot of log(Transaction Amount)")
+    st.subheader("Distribution of log(Transaction Amount) by Member Status")
     plt.figure(figsize=(10, 6))
     palette_colors = {'NON WAG': 'lightblue', 'WAG': 'lightpink'}
-    sns.violinplot(x='State', y='Transaction_Amount_log', hue='Member_Status', data=df_filtered, split=True,
+    sns.violinplot(x='Transaction_Nature', y='Transaction_Amount_log', hue='Member_Status', data=df_filtered, split=True,
                    palette=palette_colors, inner="quart")
 
-    plt.xlabel('State', fontweight='bold')
+    plt.xlabel('Transaction_Nature', fontweight='bold')
     plt.ylabel('Transaction Amount (log)', fontweight='bold')
-    # plt.title('Split Violin Plot of log(Transaction Amount) by State and Member Status')
+    plt.title('Split Violin Plot of log(Transaction Amount) by Transaction Nature and Member Status')
 
     plt.xticks(rotation=45)
     plt.legend(title='Member Status', loc='lower left')
@@ -358,32 +360,47 @@ def visualization():
 
 
     # Pivot
-    st.subheader("Average Transaction Amount by State and Member Status")
-    pivot_df = df_filtered.pivot_table(index='State', columns='Member_Status', values='Transaction_Amount', aggfunc='mean')
+    st.subheader("Average Transaction Amount by Member Status")
+    pivot_df = df_filtered.pivot_table(index='Transaction_Nature', columns='Member_Status', values='Transaction_Amount', aggfunc='mean')
 
     plt.figure(figsize=(12, 8))
-    sns.heatmap(pivot_df, cmap='Greens', annot=True, fmt=".1f", linewidths=.5)
-    # plt.title('Average Transaction Amount by State and Member Status')
+    sns.heatmap(pivot_df, cmap='Blues', annot=True, fmt=".1f", linewidths=.5)
+    plt.title('Average Transaction Amount by Transaction Nature and Member Status')
     plt.xlabel('Member Status', fontweight='bold')
-    plt.ylabel('State', fontweight='bold')
+    plt.ylabel('Transaction Nature', fontweight='bold')
     plt.xticks(rotation=45)
     plt.tight_layout()
 
     # Display the plot in Streamlit
     st.pyplot()
 
+    # # Pivot
+    # st.subheader("Average Tlog(ransaction Amount) by State and Member Status")
+    # pivot_df = df_filtered.pivot_table(index='State', columns='Member_Status', values='Transaction_Amount_log', aggfunc='mean')
+    #
+    # plt.figure(figsize=(12, 8))
+    # sns.heatmap(pivot_df, cmap='Greens', annot=True, fmt=".1f", linewidths=.5)
+    # # plt.title('Average log(Transaction Amount) by State and Member Status')
+    # plt.xlabel('Member Status', fontweight='bold')
+    # plt.ylabel('State', fontweight='bold')
+    # plt.xticks(rotation=45)
+    # plt.tight_layout()
+    #
+    # # Display the plot in Streamlit
+    # st.pyplot()
+
 
     # Mirror chart
-    st.subheader("Mirror Chart of Average Transaction Amounts between 2023 and 2021")
+    st.subheader("Average Transaction Amounts between 2023 and 2021")
     df_filtered['Formatted_Date'] = pd.to_datetime(df_filtered['Formatted_Date'])
 
     df_wag = df_filtered[df_filtered['Member_Status'] == 'WAG']
     df_nwag = df_filtered[df_filtered['Member_Status'] == 'NON WAG']
 
-    df_2021_n = df_nwag[df_nwag['Formatted_Date'].dt.year == 2021].groupby('State')['Transaction_Amount'].mean().reset_index()
-    df_2021_w = df_wag[df_wag['Formatted_Date'].dt.year == 2021].groupby('State')['Transaction_Amount'].mean().reset_index()
-    df_2023_n = df_nwag[df_nwag['Formatted_Date'].dt.year == 2023].groupby('State')['Transaction_Amount'].mean().reset_index()
-    df_2023_w = df_wag[df_wag['Formatted_Date'].dt.year == 2023].groupby('State')['Transaction_Amount'].mean().reset_index()
+    df_2021_n = df_nwag[df_nwag['Formatted_Date'].dt.year == 2021].groupby('Transaction_Nature')['Transaction_Amount'].mean().reset_index()
+    df_2021_w = df_wag[df_wag['Formatted_Date'].dt.year == 2021].groupby('Transaction_Nature')['Transaction_Amount'].mean().reset_index()
+    df_2023_n = df_nwag[df_nwag['Formatted_Date'].dt.year == 2023].groupby('Transaction_Nature')['Transaction_Amount'].mean().reset_index()
+    df_2023_w = df_wag[df_wag['Formatted_Date'].dt.year == 2023].groupby('Transaction_Nature')['Transaction_Amount'].mean().reset_index()
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -403,11 +420,11 @@ def visualization():
                           label='2023 WAG')
 
     ax.set_yticks([pos + bar_width / 2 for pos in bar_positions_2021_n])
-    ax.set_yticklabels(df_2021_n['State'])
+    ax.set_yticklabels(df_2021_n['Transaction_Nature'])
 
     ax.set_xlabel('Average Transaction Amount', fontweight='bold')
-    ax.set_ylabel('State', fontweight='bold')
-    # ax.set_title('Mirror Chart of Average Transaction Amounts by State between 2023 and 2021')
+    ax.set_ylabel('Transaction Nature', fontweight='bold')
+    ax.set_title('Mirror Chart of Average Transaction Amounts by Transaction Nature and Member Status')
 
     for bars in [bars_2021_n, bars_2021_w, bars_2023_n, bars_2023_w]:
         for bar in bars:
@@ -417,11 +434,112 @@ def visualization():
                     f'{abs(value):.2f}', ha=ha, va='center', color='black', fontsize=9)
 
     ax.set_xticklabels([f'{abs(x)}' for x in ax.get_xticks()])
-    ax.legend(loc='lower right')
+    ax.legend(loc='center right')
     plt.tight_layout()
     st.pyplot(fig)
 
+    st.divider()
 
+
+    # Hypothesis test
+    st.header("Hypothesis Test")
+    st.write('Hypothesis testing is a statistical method used to determine whether a hypothesis is statistically significant.'
+             ' We used an independent sample t-test to compare the means of two groups (WAG and NON WAG) and determine if there is a significant difference.')
+
+    # All Transaction amount
+    wag_transaction_amount_log = np.log(df_filtered[df_filtered['Member_Status'] == 'WAG']['Transaction_Amount'])
+    non_wag_transaction_amount_log = np.log(df_filtered[df_filtered['Member_Status'] == 'NON WAG']['Transaction_Amount'])
+
+    # Shapiro-Wilk test for normality
+    # shapiro_stat_in_group, shapiro_p_in_group = shapiro(wag_transaction_amount_log)
+    # shapiro_stat_not_in_group, shapiro_p_not_in_group = shapiro(non_wag_transaction_amount_log)
+    # st.write("Shapiro-Wilk test for normality:")
+    # st.write("In Group - Statistic:", shapiro_stat_in_group, " p-value:", "{:.4f}".format(shapiro_p_in_group))
+    # st.write("Not In Group - Statistic:", shapiro_stat_not_in_group, " p-value:", "{:.4f}".format(shapiro_p_not_in_group))
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.hist(wag_transaction_amount_log, bins=20, alpha=0.5, color='red', label='WAG')
+    ax.hist(non_wag_transaction_amount_log, bins=20, alpha=0.5, color='blue', label='NON WAG')
+    ax.set_xlabel('Transaction Amount (log)')
+    ax.set_ylabel('Frequency')
+    ax.set_title('Distribution of Transaction Amount (log)')
+    ax.legend()
+    st.pyplot(fig)
+
+
+    st.markdown("- If there is a significant difference in :blue[**the mean transaction amount**] between WAG and NON WAG?")
+
+    t_stat, p_value = stats.ttest_ind(wag_transaction_amount_log, non_wag_transaction_amount_log)
+
+    alpha = 0.05
+    if p_value < alpha:
+        st.write("**Reject the null hypothesis**, there is a significant difference in the mean transaction amount between the two groups.")
+    else:
+        st.write("**Fail to reject the null hypothesis**, there is no significant difference in the mean transaction amount between the two groups.")
+    st.divider()
+
+    # # Fixed transaction amount
+    # st.markdown("- If there is a significant difference in :blue[**the mean fixed transaction amount**] between WAG and NON WAG?")
+    # fixed_wag = np.log(
+    #     df_filtered[(df_filtered['Member_Status'] == 'WAG') & (df_filtered['Transaction_Nature'] == 'Fixed')][
+    #         'Transaction_Amount'])
+    # fixed_non_wag = np.log(
+    #     df_filtered[(df_filtered['Member_Status'] == 'NON WAG') & (df_filtered['Transaction_Nature'] == 'Fixed')][
+    #         'Transaction_Amount'])
+    #
+    # t_stat, p_value = stats.ttest_ind(fixed_wag, fixed_non_wag)
+    #
+    # alpha = 0.05
+    # if p_value < alpha:
+    #     st.write("**Reject the null hypothesis**, there is a significant difference in the mean fixed transaction amount between the two groups.")
+    # else:
+    #     st.write("**Fail to reject the null hypothesis**,"
+    #              "there is no significant difference in the mean fixed transaction amount between the two groups.")
+    # st.divider()
+    #
+    # # Variable transaction amount
+    # st.markdown("- If there is a significant difference in :blue[**the mean variable transaction amount**] between WAG and NON WAG?")
+    # var_wag = np.log(
+    #     df_filtered[(df_filtered['Member_Status'] == 'WAG') & (df_filtered['Transaction_Nature'] == 'Variable')][
+    #         'Transaction_Amount'])
+    # var_non_wag = np.log(
+    #     df_filtered[(df_filtered['Member_Status'] == 'NON WAG') & (df_filtered['Transaction_Nature'] == 'Variable')][
+    #         'Transaction_Amount'])
+    #
+    # t_stat, p_value = stats.ttest_ind(var_wag, var_non_wag)
+    #
+    # alpha = 0.05
+    # if p_value < alpha:
+    #     st.write("**Reject the null hypothesis**, there is a significant difference in the mean variable transaction amount between the two groups.")
+    # else:
+    #     st.write("**Fail to reject the null hypothesis**, there is no significant difference in the mean variable transaction amount between the two groups.")
+
+
+    # Chi-square test
+    st.header("Chi-square Test - Test of Independence")
+    from scipy.stats import chi2_contingency
+    st.markdown("- If there is a significant relationship between :blue[**Member Status and Transaction Type**]?")
+
+    contingency_table = pd.crosstab(df_filtered['Member_Status'], df_filtered['Transaction_Type'])
+    chi2_stat, p_val, dof, expected = chi2_contingency(contingency_table)
+
+    alpha = 0.05
+    if p_val < alpha:
+        st.write("**Reject the null hypothesis**, there is a significant relationship between Member Status(NON WAG, WAG) and Transaction Type(Income, Expenditure).")
+    else:
+        st.write("**Fail to reject the null hypothesis**, there is no significant relationship between Member Status(NON WAG, WAG) and Transaction Type(Income, Expenditure).")
+
+
+    st.markdown("- If there is a significant relationship between :blue[**Member_Status and Transaction_Nature**]?")
+
+    contingency_table = pd.crosstab(df_filtered['Member_Status'], df_filtered['Transaction_Nature'])
+    chi2_stat, p_val, dof, expected = chi2_contingency(contingency_table)
+
+    alpha = 0.05
+    if p_val < alpha:
+        st.write("**Reject the null hypothesis**, there is a significant relationship between Member Status(NON WAG, WAG) and Transaction Nature(Fixed, Variable).")
+    else:
+        st.write("**Fail to reject the null hypothesis**, there is no significant relationship between Member Status(NON WAG, WAG) and Transaction Nature(Fixed, Variable).")
 
 
 def challenges():
