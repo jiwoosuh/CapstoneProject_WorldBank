@@ -7,6 +7,7 @@ from streamlit.components.v1 import components
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
 from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
+st.set_option('deprecation.showPyplotGlobalUse', False)
 
 def main():
     st.title("🇳🇬 Nigeria For Women Program Scale-up Project")
@@ -230,8 +231,6 @@ def visualization():
     import pandas as pd
     from wordcloud import WordCloud
     import matplotlib.pyplot as plt
-    from PIL import Image
-    from io import BytesIO
     import seaborn as sns
     from scipy import stats
 
@@ -273,21 +272,31 @@ def visualization():
                                  ignore_index=True)
     st.write(info_df)
 
+
     # Plot
-    # Calculate mean, median, and mode
-    mean_val = df["Transaction_Amount"].mean()
-    median_val = df["Transaction_Amount"].median()
-    mode_val = stats.mode(df["Transaction_Amount"])[0][0]
+    option = st.sidebar.selectbox(
+        'Income or Expenditure',
+        ('All', 'Income', 'Expenditure'))
+    if option == 'All':
+        df_filtered = df
+    elif option == 'Income':
+        df_filtered = df[df['Transaction_Type'] == 'Income']
+    elif option == 'Expenditure':
+        df_filtered = df[df['Transaction_Type'] == 'Expenditure']
 
     # Plot histogram and density plot
+    mean_val = df_filtered["Transaction_Amount"].mean()
+    median_val = df_filtered["Transaction_Amount"].median()
+    mode_val = stats.mode(df_filtered["Transaction_Amount"])[0][0]
+
     st.subheader('Histogram and Density Plot with Mean, Median, and Mode')
     plt.figure(figsize=(10, 6))
-    sns.histplot(df["Transaction_Amount"], kde=True, color='skyblue')
+    sns.histplot(df_filtered["Transaction_Amount"], kde=True, color='skyblue')
     plt.axvline(mean_val, color='red', linestyle='dashed', linewidth=1, label='Mean: {:.2f}'.format(mean_val))
     plt.axvline(median_val, color='green', linestyle='dashed', linewidth=1, label='Median: {:.2f}'.format(median_val))
     plt.axvline(mode_val, color='orange', linestyle='dashed', linewidth=1, label='Mode: {:.2f}'.format(mode_val))
     plt.title('Histogram and Density Plot of {}'.format("Transaction_Amount"))
-    plt.xlabel('Data Values')
+    plt.xlabel('Transaction Amount')
     plt.ylabel('Frequency / Density')
     plt.legend()
     combined_fig = plt.gcf()
@@ -295,85 +304,124 @@ def visualization():
 
     st.write("Due to the right-skewed nature of the Transaction_Amount data, we employ log transformation to achieve a more symmetrical distribution. This transformation mitigates the impact of large values on the distribution, compresses the range of values, and stabilizes variance. Additionally, it promotes linearity in the relationship between variables, a desirable trait in statistical modeling and analysis.")
 
-    df['Transaction_Amount_log'] = np.log(df['Transaction_Amount'])
-
-    # Calculate mean, median, and mode
-    mean_val = df["Transaction_Amount_log"].mean()
-    median_val = df["Transaction_Amount_log"].median()
-    mode_val = stats.mode(df["Transaction_Amount_log"])[0][0]
+    df_filtered['Transaction_Amount_log'] = np.log(df_filtered['Transaction_Amount'])
 
     # Plot histogram and density plot after log
-    st.subheader('Histogram and Density of Transaction_Amount_log')
+    mean_val = df_filtered["Transaction_Amount_log"].mean()
+    median_val = df_filtered["Transaction_Amount_log"].median()
+    mode_val = stats.mode(df_filtered["Transaction_Amount_log"])[0][0]
+
+    st.subheader('Histogram and Density of log-transformed Transaction Amount')
     plt.figure(figsize=(10, 6))
-    sns.histplot(df["Transaction_Amount_log"], kde=True, color='skyblue')
+    sns.histplot(df_filtered["Transaction_Amount_log"], kde=True, color='skyblue')
     plt.axvline(mean_val, color='red', linestyle='dashed', linewidth=1, label='Mean: {:.2f}'.format(mean_val))
     plt.axvline(median_val, color='green', linestyle='dashed', linewidth=1, label='Median: {:.2f}'.format(median_val))
     plt.axvline(mode_val, color='orange', linestyle='dashed', linewidth=1, label='Mode: {:.2f}'.format(mode_val))
-    plt.title('Histogram and Density Plot of {}'.format("Transaction_Amount_log"))
-    plt.xlabel('Data Values')
+    plt.title('Histogram and Density Plot of {}'.format("log(Transaction Amount)"))
+    plt.xlabel('log(Transaction Amount)')
     plt.ylabel('Frequency / Density')
     plt.legend()
     combined_fig = plt.gcf()
     st.pyplot(combined_fig)
 
 
-    st.subheader("Average Transaction Amount by Members Status")
-    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
-
-    # Filter data for Member_Status == "NON WAG" and plot boxplot
-    non_wag_data = df[df["Member_Status"] == "NON WAG"]
-    non_wag_data_grouped = non_wag_data.groupby("Transaction_Type")["Transaction_Amount_log"]
-
-    boxprops_non_wag = dict(facecolor="lightblue", edgecolor="black")
-
-    axes[0].boxplot([non_wag_data_grouped.get_group("Income"), non_wag_data_grouped.get_group("Expenditure")],
-                    vert=True,
-                    patch_artist=True,
-                    labels=["Income", "Expenditure"],
-                    boxprops=boxprops_non_wag)
-    axes[0].set_title("NON WAG")
-
-    # Filter data for Member_Status == "WAG" and plot boxplot
-    wag_data = df[df["Member_Status"] == "WAG"]
-    wag_data_grouped = wag_data.groupby("Transaction_Type")["Transaction_Amount_log"]
-
-    # Plot boxplot for WAG
-    boxprops_wag = dict(facecolor="lightpink", edgecolor="black")
-
-    axes[1].boxplot([wag_data_grouped.get_group("Income"), wag_data_grouped.get_group("Expenditure")],
-                    vert=True,
-                    patch_artist=True,
-                    labels=["Income", "Expenditure"],
-                    boxprops=boxprops_wag)
-    axes[1].set_title("WAG")
-
-    # Add labels and titles
-    for ax in axes:
-        ax.set_ylabel("Transaction Amount")
-        ax.set_xlabel("Transaction Type")
-        ax.yaxis.grid(True)
-
-    # Display the plot using Streamlit
-    st.pyplot(fig)
-
-
     # Word Cloud
-    st.subheader("Word Cloud for Transaction Names")
+    st.subheader("Word Cloud for Transaction Name")
     custom_stopwords = ["the", "and", "to", "of", "in", "for", "on", "with", "by", "from", "at", "is", "are", "was",
                         "were", "it", "that", "this", "an", "as", "or", "be", "have", "has", "not", "no", "can",
                         "could", "but", "so", "if", "when", "where", "how", "why", "which", "cost", "income", "weekly"]
 
-    transaction_names = df['Transaction_Name'].str.lower().str.split()
+    transaction_names = df_filtered['Transaction_Name'].str.lower().str.split()
     transaction_names = [[word for word in words if word not in custom_stopwords] for words in transaction_names]
     transaction_names_str = ' '.join([' '.join(words) for words in transaction_names])
 
-    # Create the word cloud image
     wordcloud = WordCloud(width=800, height=800,
                           background_color='white',
                           min_font_size=10).generate(transaction_names_str)
-
-    # Display the word cloud image using Streamlit
     st.image(wordcloud.to_array(), use_column_width=True)
+
+
+    # Split violin plot
+    st.subheader("Split Violin Plot of log(Transaction Amount)")
+    plt.figure(figsize=(10, 6))
+    palette_colors = {'NON WAG': 'lightblue', 'WAG': 'lightpink'}
+    sns.violinplot(x='State', y='Transaction_Amount_log', hue='Member_Status', data=df_filtered, split=True,
+                   palette=palette_colors, inner="quart")
+
+    plt.xlabel('State', fontweight='bold')
+    plt.ylabel('Transaction Amount (log)', fontweight='bold')
+    # plt.title('Split Violin Plot of log(Transaction Amount) by State and Member Status')
+
+    plt.xticks(rotation=45)
+    plt.legend(title='Member Status', loc='lower left')
+    st.pyplot(plt)
+
+
+    # Pivot
+    st.subheader("Average Transaction Amount by State and Member Status")
+    pivot_df = df_filtered.pivot_table(index='State', columns='Member_Status', values='Transaction_Amount', aggfunc='mean')
+
+    plt.figure(figsize=(12, 8))
+    sns.heatmap(pivot_df, cmap='Greens', annot=True, fmt=".1f", linewidths=.5)
+    # plt.title('Average Transaction Amount by State and Member Status')
+    plt.xlabel('Member Status', fontweight='bold')
+    plt.ylabel('State', fontweight='bold')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    # Display the plot in Streamlit
+    st.pyplot()
+
+
+    # Mirror chart
+    st.subheader("Mirror Chart of Average Transaction Amounts between 2023 and 2021")
+    df_filtered['Formatted_Date'] = pd.to_datetime(df_filtered['Formatted_Date'])
+
+    df_wag = df_filtered[df_filtered['Member_Status'] == 'WAG']
+    df_nwag = df_filtered[df_filtered['Member_Status'] == 'NON WAG']
+
+    df_2021_n = df_nwag[df_nwag['Formatted_Date'].dt.year == 2021].groupby('State')['Transaction_Amount'].mean().reset_index()
+    df_2021_w = df_wag[df_wag['Formatted_Date'].dt.year == 2021].groupby('State')['Transaction_Amount'].mean().reset_index()
+    df_2023_n = df_nwag[df_nwag['Formatted_Date'].dt.year == 2023].groupby('State')['Transaction_Amount'].mean().reset_index()
+    df_2023_w = df_wag[df_wag['Formatted_Date'].dt.year == 2023].groupby('State')['Transaction_Amount'].mean().reset_index()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    bar_width = 0.35
+    bar_positions_2021_n = range(len(df_2021_n))
+    bar_positions_2021_w = [pos + bar_width for pos in bar_positions_2021_n]
+    bar_positions_2023_n = range(len(df_2023_n))
+    bar_positions_2023_w = [pos + bar_width for pos in bar_positions_2023_n]
+
+    bars_2021_n = ax.barh(bar_positions_2021_n, -df_2021_n['Transaction_Amount'], bar_width, color='steelblue',
+                          label='2021 NON WAG')
+    bars_2021_w = ax.barh(bar_positions_2021_w, -df_2021_w['Transaction_Amount'], bar_width, color='lightcoral',
+                          label='2021 WAG')
+    bars_2023_n = ax.barh(bar_positions_2023_n, df_2023_n['Transaction_Amount'], bar_width, color='lightblue',
+                          label='2023 NON WAG')
+    bars_2023_w = ax.barh(bar_positions_2023_w, df_2023_w['Transaction_Amount'], bar_width, color='lightpink',
+                          label='2023 WAG')
+
+    ax.set_yticks([pos + bar_width / 2 for pos in bar_positions_2021_n])
+    ax.set_yticklabels(df_2021_n['State'])
+
+    ax.set_xlabel('Average Transaction Amount', fontweight='bold')
+    ax.set_ylabel('State', fontweight='bold')
+    # ax.set_title('Mirror Chart of Average Transaction Amounts by State between 2023 and 2021')
+
+    for bars in [bars_2021_n, bars_2021_w, bars_2023_n, bars_2023_w]:
+        for bar in bars:
+            value = bar.get_width()
+            ha = 'right' if value < 0 else 'left'
+            ax.text(value, bar.get_y() + bar.get_height() / 2,
+                    f'{abs(value):.2f}', ha=ha, va='center', color='black', fontsize=9)
+
+    ax.set_xticklabels([f'{abs(x)}' for x in ax.get_xticks()])
+    ax.legend(loc='lower right')
+    plt.tight_layout()
+    st.pyplot(fig)
+
+
 
 
 def challenges():
