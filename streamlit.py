@@ -276,7 +276,7 @@ def visualization():
     st.divider()
 
     # Plot
-    st.header('Visual Comparison and Clustering Analysis for Transaction Amount')
+    st.header('Data Analytics and Visualization')
     option = st.sidebar.selectbox(
         'Income or Expenditure',
         ('All', 'Income', 'Expenditure'))
@@ -292,7 +292,7 @@ def visualization():
     median_val = df_filtered["Transaction_Amount"].median()
     mode_val = stats.mode(df_filtered["Transaction_Amount"])[0][0]
 
-    st.subheader('Distribution of log-transformed Transaction Amount')
+    st.subheader('Distribution of Transaction Amount')
     plt.figure(figsize=(10, 6))
     sns.histplot(df_filtered["Transaction_Amount"], kde=True, color='skyblue')
     plt.axvline(mean_val, color='red', linestyle='dashed', linewidth=1, label='Mean: {:.2f}'.format(mean_val))
@@ -314,7 +314,7 @@ def visualization():
     median_val = df_filtered["Transaction_Amount_log"].median()
     mode_val = stats.mode(df_filtered["Transaction_Amount_log"])[0][0]
 
-    st.subheader('Distribution of log-transformed Transaction Amount')
+    st.subheader('Distribution of Log-transformed Transaction Amount')
     plt.figure(figsize=(10, 6))
     sns.histplot(df_filtered["Transaction_Amount_log"], kde=True, color='skyblue')
     plt.axvline(mean_val, color='red', linestyle='dashed', linewidth=1, label='Mean: {:.2f}'.format(mean_val))
@@ -457,7 +457,7 @@ def visualization():
     # st.write("In Group - Statistic:", shapiro_stat_in_group, " p-value:", "{:.4f}".format(shapiro_p_in_group))
     # st.write("Not In Group - Statistic:", shapiro_stat_not_in_group, " p-value:", "{:.4f}".format(shapiro_p_not_in_group))
 
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(10, 6))
     ax.hist(wag_transaction_amount_log, bins=20, alpha=0.5, color='red', label='WAG')
     ax.hist(non_wag_transaction_amount_log, bins=20, alpha=0.5, color='blue', label='NON WAG')
     ax.set_xlabel('Transaction Amount (log)')
