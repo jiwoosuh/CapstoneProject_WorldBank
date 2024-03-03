@@ -6,7 +6,7 @@ from pathlib import Path
 from streamlit.components.v1 import components
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
-# from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
+from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 def main():
@@ -215,6 +215,9 @@ def data_preprocessing():
     df['Region'] = df['Region'].str.lower()
     df['Transaction_Name'] = df['Transaction_Name'].str.replace('₦', '')
 
+    # Remove the 'Date' column
+    df.drop(columns=['Date'], inplace=True)
+
     df.to_csv('Financial_Diaries.csv', index=False)
     st.success('Data cleaning is completed. Financial_Diaries.csv saved.')
     # Display processed data
@@ -262,20 +265,35 @@ def visualization():
     st.write(f"Number of Columns: {df.shape[1]}")
 
     # Display first 6 unique values for each column
+    # st.subheader("Data Structure")
+    # info_df = pd.DataFrame(columns=["Column Name", "Data Type", "Non-Null Count", "Unique Values"])
+    # for column in df.columns:
+    #     info_series = df[column].describe()
+    #     data_type = df[column].dtype
+    #     unique_values = df[column].unique()[:6]
+    #     info_df = info_df.append({"Column Name": column,
+    #                               "Data Type": data_type,
+    #                               "Non-Null Count": info_series["count"],
+    #                               "Unique Values": ", ".join(map(str, unique_values))},
+    #                              ignore_index=True)
+    # st.write(info_df)
+    #
+    # st.divider()
     st.subheader("Data Structure")
-    info_df = pd.DataFrame(columns=["Column Name", "Data Type", "Non-Null Count", "Unique Values"])
+    info_data = []
     for column in df.columns:
-        info_series = df[column].describe()
         data_type = df[column].dtype
+        non_null_count = df[column].count()
         unique_values = df[column].unique()[:6]
-        info_df = info_df.append({"Column Name": column,
-                                  "Data Type": data_type,
-                                  "Non-Null Count": info_series["count"],
-                                  "Unique Values": ", ".join(map(str, unique_values))},
-                                 ignore_index=True)
+        info_data.append({"Column Name": column,
+                          "Data Type": data_type,
+                          "Non-Null Count": non_null_count,
+                          "Unique Values": ", ".join(map(str, unique_values))})
+    info_df = pd.DataFrame(info_data)
     st.write(info_df)
 
     st.divider()
+
 
     # Plot
     st.header('Data Analytics and Visualization')
@@ -343,6 +361,47 @@ def visualization():
                           background_color='white',
                           min_font_size=10).generate(transaction_names_str)
     st.image(wordcloud.to_array(), use_column_width=True)
+
+    grouped_data = df_filtered.groupby(['Week', 'Category_Name'])['Transaction_Amount'].sum().reset_index()
+
+    # Pivot the grouped data for easier plotting
+    pivot_table = grouped_data.pivot('Week', 'Category_Name', 'Transaction_Amount').fillna(0)
+
+
+    # Categories
+    unique_categories = df_filtered['Category_Name'].unique()
+
+    # Define a dictionary to map each category to a color from the "Set2" palette
+    category_colors = dict(zip(unique_categories, sns.color_palette("Set3", len(unique_categories))))
+
+    # Distribution of Transaction Categories
+    st.subheader('Distribution of Transaction Categories')
+    plt.figure(figsize=(12, 6))
+    sns.countplot(x='Category_Name', data=df_filtered, palette=category_colors)
+    plt.xticks(rotation=45)
+    plt.title('Distribution of Transaction Categories')
+    st.pyplot()
+
+    # Proportion of Each Category
+    st.subheader('Proportion of Each Category')
+    category_proportions = df_filtered['Category_Name'].value_counts(normalize=True)
+    plt.figure(figsize=(10, 8))
+    category_proportions.plot(kind='pie', autopct='%1.1f%%',
+                              colors=[category_colors.get(x) for x in category_proportions.index])
+    plt.title('Proportion of Each Category')
+    plt.ylabel('')  # Hide the y-label
+    st.pyplot()
+
+    # Clustered Bar Chart
+    st.subheader('Weekly Transaction Amounts by Category')
+    pivot_table = df_filtered.pivot_table(index='Week', columns='Category_Name', values='Transaction_Amount',
+                                          aggfunc='sum', fill_value=0)
+    pivot_table.plot(kind='bar', figsize=(14, 7), color=[category_colors.get(x) for x in pivot_table.columns])
+    plt.title('Weekly Transaction Amounts by Category')
+    plt.xlabel('Week Number')
+    plt.ylabel('Total Transaction Amount')
+    plt.legend(title='Category Name')
+    st.pyplot()
 
 
     # Split violin plot
