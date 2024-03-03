@@ -148,10 +148,12 @@ def methodology():
         - **Zero-shot classification:** Leveraging transformer models for advanced NLP analysis.
     - **Significance:** The combination of traditional and modern NLP techniques provides a comprehensive understanding of the textual information in transaction data.
 
-    ### Data Visualization + Web App
-    - **Description:** Visualization tools like Tableau and Streamlit are employed for creating interactive data visualizations and web applications.
+    ### Data Analytics and Visualization + Web App
+    - **Description:** Visualization tools like Matplotlib, Seaborn and Streamlit are employed for creating interactive data visualizations and web applications.
     - **Components:**
-        - **Tableau:** Used for creating visually appealing and informative dashboards.
+        - **Python(Matplotlib/Seaborn):** Used for creating visually appealing and informative dashboards.
+        - **Hypothesis Testing:** Used independent sample t-test to determine whether there is a significant difference between the means of two independent groups
+        - **Chi-squared Test:** Used test of independence to determine whether there is a significant association between two categorical variables
         - **Streamlit:** Utilized for building interactive web applications for data exploration.
     - **Significance:** Visualization enhances the interpretability of the data, while web apps provide an accessible interface for users to interact with the findings.
     """
@@ -189,7 +191,7 @@ def data_preprocessing():
 
     combined_csv_data = []
     for docx_file in file_locations:
-        st.write(f'Processing file: {docx_file}')
+        # st.write(f'Processing file: {docx_file}')
         csv_data = convert_table_to_csv_file(docx_file, csv_file_header)
         combined_csv_data.extend(csv_data)
 
@@ -516,7 +518,8 @@ def visualization():
 
 
     # Chi-square test
-    st.header("Chi-square Test - Test of Independence")
+    st.header("Chi-square Test")
+    st.write("Test of Independence is used in this analysis to determine whether there is a significant association between two categorical variables")
     from scipy.stats import chi2_contingency
     st.markdown("- If there is a significant relationship between :blue[**Member Status and Transaction Type**]?")
 
@@ -530,7 +533,7 @@ def visualization():
         st.write("**Fail to reject the null hypothesis**, there is no significant relationship between Member Status(NON WAG, WAG) and Transaction Type(Income, Expenditure).")
 
 
-    st.markdown("- If there is a significant relationship between :blue[**Member_Status and Transaction_Nature**]?")
+    st.markdown("- If there is a significant relationship between :blue[**Member Status and Transaction Nature**]?")
 
     contingency_table = pd.crosstab(df_filtered['Member_Status'], df_filtered['Transaction_Nature'])
     chi2_stat, p_val, dof, expected = chi2_contingency(contingency_table)
@@ -569,6 +572,16 @@ def challenges():
 def conclusion():
     st.header("Conclusion")
     # Add content for Conclusion page
+    st.markdown("""
+    ### Data Analytics and Visualization
+    - The most occurred transaction names are "gift", "business", and "sale"
+    - Distribution of log(Transaction Amount) by Member Status is similar
+    - WAG members' average transaction amount was higher than Non WAG members'
+    - Average transaction amount in 2023 was hight than average transaction amount in 2021
+    - There is no significant difference in the mean transaction amount between WAG and NON WAG
+    - There is no significant relationship between Member Status(NON WAG, WAG) and Transaction Type(Income, Expenditure)
+    - There is no significant relationship between Member Status(NON WAG, WAG) and Transaction Nature(Fixed, Variable)
+    """)
 
 def further_analysis():
     st.header("further_analysis")
