@@ -6,7 +6,7 @@ from pathlib import Path
 from streamlit.components.v1 import components
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
-from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
+# from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 def main():
@@ -577,7 +577,7 @@ def conclusion():
     - The most occurred transaction names are "gift", "business", and "sale"
     - Distribution of log(Transaction Amount) by Member Status is similar
     - WAG members' average transaction amount was higher than Non WAG members'
-    - Average transaction amount in 2023 was hight than average transaction amount in 2021
+    - Average transaction amount in 2023 was higher than average transaction amount in 2021
     - There is no significant difference in the mean transaction amount between WAG and NON WAG
     - There is no significant relationship between Member Status(NON WAG, WAG) and Transaction Type(Income, Expenditure)
     - There is no significant relationship between Member Status(NON WAG, WAG) and Transaction Nature(Fixed, Variable)
