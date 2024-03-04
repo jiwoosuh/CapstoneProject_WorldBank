@@ -6,7 +6,7 @@ from pathlib import Path
 from streamlit.components.v1 import components
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
-from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
+# from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 def main():
@@ -392,11 +392,23 @@ def visualization():
     plt.ylabel('')  # Hide the y-label
     st.pyplot()
 
-    # Clustered Bar Chart
+    # # Clustered Bar Chart
+    # st.subheader('Weekly Transaction Amounts by Category')
+    # pivot_table = df_filtered.pivot_table(index='Week', columns='Category_Name', values='Transaction_Amount',
+    #                                       aggfunc='sum', fill_value=0)
+    # pivot_table.plot(kind='bar', figsize=(14, 7), color=[category_colors.get(x) for x in pivot_table.columns])
+    # plt.title('Weekly Transaction Amounts by Category')
+    # plt.xlabel('Week Number')
+    # plt.ylabel('Total Transaction Amount')
+    # plt.legend(title='Category Name')
+    # st.pyplot()
+
+    # Stacked Bar Chart
     st.subheader('Weekly Transaction Amounts by Category')
     pivot_table = df_filtered.pivot_table(index='Week', columns='Category_Name', values='Transaction_Amount',
                                           aggfunc='sum', fill_value=0)
-    pivot_table.plot(kind='bar', figsize=(14, 7), color=[category_colors.get(x) for x in pivot_table.columns])
+    pivot_table.plot(kind='bar', stacked=True, figsize=(14, 7),
+                     color=[category_colors.get(x) for x in pivot_table.columns])
     plt.title('Weekly Transaction Amounts by Category')
     plt.xlabel('Week Number')
     plt.ylabel('Total Transaction Amount')
