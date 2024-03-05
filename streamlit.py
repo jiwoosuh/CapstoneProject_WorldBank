@@ -5,7 +5,7 @@ import pandas as pd
 from pathlib import Path
 from streamlit.components.v1 import components
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
-from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
+# from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
 # from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
@@ -296,23 +296,28 @@ def visualization():
 
 
     # Plot
+
+    # Plot histogram and density plot
+    # Assuming 'st' is imported from Streamlit
     st.header('Data Analytics and Visualization')
     option = st.sidebar.selectbox(
         'Income or Expenditure',
         ('All', 'Income', 'Expenditure'))
+
     if option == 'All':
         df_filtered = df
     elif option == 'Income':
         df_filtered = df[df['Transaction_Type'] == 'Income']
-    elif option == 'Expenditure':
+    else:
         df_filtered = df[df['Transaction_Type'] == 'Expenditure']
 
     # Plot histogram and density plot
     mean_val = df_filtered["Transaction_Amount"].mean()
     median_val = df_filtered["Transaction_Amount"].median()
-    mode_val = stats.mode(df_filtered["Transaction_Amount"])[0][0]
+    # mode_val = stats.mode(df_filtered["Transaction_Amount"]).mode[0]
+    # mode_val = stats.mode(df_filtered["Transaction_Amount"])[0][0]
+    mode_val = stats.mode(df_filtered["Transaction_Amount"]).mode.item()
 
-    st.subheader('Distribution of Transaction Amount')
     plt.figure(figsize=(10, 6))
     sns.histplot(df_filtered["Transaction_Amount"], kde=True, color='skyblue')
     plt.axvline(mean_val, color='red', linestyle='dashed', linewidth=1, label='Mean: {:.2f}'.format(mean_val))
@@ -325,16 +330,16 @@ def visualization():
     combined_fig = plt.gcf()
     st.pyplot(combined_fig)
 
-    st.write("Due to the right-skewed nature of the Transaction_Amount data, we employ log transformation to achieve a more symmetrical distribution. This transformation mitigates the impact of large values on the distribution, compresses the range of values, and stabilizes variance. Additionally, it promotes linearity in the relationship between variables, a desirable trait in statistical modeling and analysis.")
+    st.write(
+        "Due to the right-skewed nature of the Transaction_Amount data, we employ log transformation to achieve a more symmetrical distribution. This transformation mitigates the impact of large values on the distribution, compresses the range of values, and stabilizes variance. Additionally, it promotes linearity in the relationship between variables, a desirable trait in statistical modeling and analysis.")
 
     df_filtered['Transaction_Amount_log'] = np.log(df_filtered['Transaction_Amount'])
 
     # Plot histogram and density plot after log
     mean_val = df_filtered["Transaction_Amount_log"].mean()
     median_val = df_filtered["Transaction_Amount_log"].median()
-    mode_val = stats.mode(df_filtered["Transaction_Amount_log"])[0][0]
+    mode_val = stats.mode(df_filtered["Transaction_Amount_log"]).mode.item()
 
-    st.subheader('Distribution of Log-transformed Transaction Amount')
     plt.figure(figsize=(10, 6))
     sns.histplot(df_filtered["Transaction_Amount_log"], kde=True, color='skyblue')
     plt.axvline(mean_val, color='red', linestyle='dashed', linewidth=1, label='Mean: {:.2f}'.format(mean_val))
@@ -360,12 +365,10 @@ def visualization():
     wordcloud = WordCloud(width=800, height=800,
                           background_color='white',
                           min_font_size=10).generate(transaction_names_str)
-    st.image(wordcloud.to_array(), use_column_width=True)
-
-    grouped_data = df_filtered.groupby(['Week', 'Category_Name'])['Transaction_Amount'].sum().reset_index()
-
-    # Pivot the grouped data for easier plotting
-    pivot_table = grouped_data.pivot('Week', 'Category_Name', 'Transaction_Amount').fillna(0)
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis('off')
+    plt.legend('')
+    st.pyplot(use_container_width=True)
 
 
     # Categories
@@ -375,52 +378,34 @@ def visualization():
     category_colors = dict(zip(unique_categories, sns.color_palette("Set3", len(unique_categories))))
 
     # Distribution of Transaction Categories
-    st.subheader('Distribution of Transaction Categories')
     plt.figure(figsize=(12, 6))
     sns.countplot(x='Category_Name', data=df_filtered, palette=category_colors)
     plt.xticks(rotation=45)
     plt.title('Distribution of Transaction Categories')
+    plt.tight_layout()
     st.pyplot()
-
-    # Proportion of Each Category
-    st.subheader('Proportion of Each Category')
-    category_proportions = df_filtered['Category_Name'].value_counts(normalize=True)
-    plt.figure(figsize=(10, 8))
-    category_proportions.plot(kind='pie', autopct='%1.1f%%',
-                              colors=[category_colors.get(x) for x in category_proportions.index])
-    plt.title('Proportion of Each Category')
-    plt.ylabel('')  # Hide the y-label
-    st.pyplot()
-
-    # # Clustered Bar Chart
-    # st.subheader('Weekly Transaction Amounts by Category')
-    # pivot_table = df_filtered.pivot_table(index='Week', columns='Category_Name', values='Transaction_Amount',
-    #                                       aggfunc='sum', fill_value=0)
-    # pivot_table.plot(kind='bar', figsize=(14, 7), color=[category_colors.get(x) for x in pivot_table.columns])
-    # plt.title('Weekly Transaction Amounts by Category')
-    # plt.xlabel('Week Number')
-    # plt.ylabel('Total Transaction Amount')
-    # plt.legend(title='Category Name')
-    # st.pyplot()
 
     # Stacked Bar Chart
-    st.subheader('Weekly Transaction Amounts by Category')
-    pivot_table = df_filtered.pivot_table(index='Week', columns='Category_Name', values='Transaction_Amount',
-                                          aggfunc='sum', fill_value=0)
-    pivot_table.plot(kind='bar', stacked=True, figsize=(14, 7),
-                     color=[category_colors.get(x) for x in pivot_table.columns])
-    plt.title('Weekly Transaction Amounts by Category')
-    plt.xlabel('Week Number')
-    plt.ylabel('Total Transaction Amount')
-    plt.legend(title='Category Name')
-    st.pyplot()
+    grouped_data = df_filtered.groupby(['Week', 'Category_Name'])['Transaction_Amount'].sum().reset_index()
+    pivot_table = grouped_data.pivot(index='Week', columns='Category_Name', values='Transaction_Amount').fillna(0)
 
+    # Stacked Bar Chart
+    fig, ax = plt.subplots(figsize=(14, 7))
+    pivot_table.plot(kind='bar', stacked=True, ax=ax,
+                     color=[category_colors.get(x) for x in pivot_table.columns])
+    ax.set_title('Weekly Transaction Amounts by Category')
+    ax.set_xlabel('Week Number')
+    ax.set_ylabel('Total Transaction Amount')
+    ax.legend(title='Category Name')
+    plt.tight_layout()
+    st.pyplot()
 
     # Split violin plot
     st.subheader("Distribution of log(Transaction Amount) by Member Status")
     plt.figure(figsize=(10, 6))
     palette_colors = {'NON WAG': 'lightblue', 'WAG': 'lightpink'}
-    sns.violinplot(x='Transaction_Nature', y='Transaction_Amount_log', hue='Member_Status', data=df_filtered, split=True,
+    sns.violinplot(x='Transaction_Nature', y='Transaction_Amount_log', hue='Member_Status', data=df_filtered,
+                   split=True,
                    palette=palette_colors, inner="quart")
 
     plt.xlabel('Transaction_Nature', fontweight='bold')
@@ -429,7 +414,7 @@ def visualization():
 
     plt.xticks(rotation=45)
     plt.legend(title='Member Status', loc='lower left')
-    st.pyplot(plt)
+    st.pyplot()
 
 
     # Pivot
@@ -446,21 +431,6 @@ def visualization():
 
     # Display the plot in Streamlit
     st.pyplot()
-
-    # # Pivot
-    # st.subheader("Average Tlog(ransaction Amount) by State and Member Status")
-    # pivot_df = df_filtered.pivot_table(index='State', columns='Member_Status', values='Transaction_Amount_log', aggfunc='mean')
-    #
-    # plt.figure(figsize=(12, 8))
-    # sns.heatmap(pivot_df, cmap='Greens', annot=True, fmt=".1f", linewidths=.5)
-    # # plt.title('Average log(Transaction Amount) by State and Member Status')
-    # plt.xlabel('Member Status', fontweight='bold')
-    # plt.ylabel('State', fontweight='bold')
-    # plt.xticks(rotation=45)
-    # plt.tight_layout()
-    #
-    # # Display the plot in Streamlit
-    # st.pyplot()
 
 
     # Mirror chart
