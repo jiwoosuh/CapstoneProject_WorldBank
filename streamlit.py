@@ -228,7 +228,46 @@ def data_preprocessing():
 
 
 def transaction_analysis():
-    st.header("Transactions NLP Analysis")
+    st.header("Transaction NLP Analysis")
+
+    st.markdown("""
+    ## Classification of Transactions into Categories
+    We categorized transactions into 11 distinct categories for precise analysis:
+
+    - **0- Business and Trade:** Non-agricultural income/expenditure.
+    - **1- Agriculture:** Agriculture-related transactions.
+    - **2- Travel and Transport:** Includes fuel/gas.
+    - **3- Gifts:** Financial gifts from relatives or friends.
+    - **4- Household:** Related to household items, like firewood, repairs, etc.
+    - **5- Consumables:** Food, water, etc.
+    - **6- Financial Management:** Loan repayment, interest, etc.
+    - **7- Health Care:** Hospital and healthcare finances.
+    - **8- WAG:** Transactions related to WAG savings.
+    - **9- Personal:** Purchases like hair braiding, clothes, shoes, etc.
+    - **10- Miscellaneous:** Other transactions, like church offerings, Christmas expenses, etc.
+
+    ## Initial Approach for Categorization
+    Initial attempts using LDA and clustering failed due to the sentence-like structure of transactions.
+
+    ## Data Preparation
+    To create a balanced training dataset, we manually handpicked 10 rows from each category.
+
+    ## Model Training and Application
+    We developed a text processing pipeline incorporating TF-IDF Vectorization and Multinomial Naive Bayes. This approach was applied to the curated dataset, yielding precise classification.
+
+    ## Outcome
+    This method achieved higher accuracy than previous attempts, successfully labeling all transactions into appropriate categories.
+
+    ## Exploring Advanced Methods
+    Subsequently, we experimented with a pre-trained model for zero-shot classification using Hugging Face's `facebook/bart-large-mnli`.
+
+    ## Outcome
+    This method also showed similar results in the classification process. 
+
+    ## Comparing Methods
+    We are currently comparing the results of the TF-IDF Vectorization with Naive Bayes approach and the zero-shot classification method to determine the best fit for our project needs.
+    """)
+
 
 def visualization():
     import streamlit as st
