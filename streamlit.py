@@ -5,13 +5,11 @@ import pandas as pd
 from pathlib import Path
 from streamlit.components.v1 import components
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
-from source_code.geo_viz import init_map, create_point_map, plot_from_df, load_df, load_map_region, load_map_state, main_region, main_state, plots
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
-# from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
+from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 def main():
-    st.set_page_config(layout='wide')
     st.title("🇳🇬 Nigeria For Women Program Scale-up Project")
     st.subheader("GWU Data Science Capstone Project - 2024 Spring")
     st.write("With World Bank 🌐 Social Sustainability and Inclusion")
@@ -23,7 +21,7 @@ def main():
     page = st.sidebar.selectbox("Select a page",
                                 ["Project Overview", "Main Tasks", "Methodology",
                                  "Data Preprocessing", "OCR Handwritten PDF", "Transaction Analysis",
-                                 "Visual Analysis", "Geovisualization", "Challenges","Conclusion", "Further Tasks"])
+                                 "Visual Analysis", "Challenges","Conclusion", "Further Tasks"])
 
     # Page content
     if page == "Project Overview":
@@ -40,8 +38,6 @@ def main():
         transaction_analysis()
     elif page == "Visual Analysis":
         visualization()
-    elif page == "Geovisualization":
-        geo_visualization()
     elif page == "Challenges":
         challenges()
     elif page == "Conclusion":
@@ -96,10 +92,10 @@ def tasks():
 
     tasks_info = """
 
-    ### Data Preprocessing
-    - **Description:** Extracting data from a hierarchical structure of 178 Word files distributed across multiple directories using `Docx` and `RegEx` for preprocessing.
-    - **Objective:** Convert Word document data into a clean, structured format (CSV), ensuring data quality and consistency.
-    - **Significance:** This step plays a critical role in preparing the dataset for analysis. By converting unstructured data into a structured format and applying preprocessing techniques, we ensure the dataset's readiness for analysis, enhancing its usability and reliability for analytical tasks.
+    ### Data Preprocessing - Docx2CSV, RegEx
+    - **Description:** This task involves preparing the raw data for analysis. Two methods are employed - using the `Docx2CSV` utility and employing Regular Expressions (RegEx).
+    - **Objective:** To convert data from Word documents (docx) into a more structured format (CSV) using `Docx2CSV` and perform additional preprocessing using RegEx for tasks like changing date formats.
+    - **Significance:** This step is crucial for transforming unstructured data into a format suitable for analysis, ensuring uniformity and cleanliness in the dataset.
 
     ### OCR Handwritten PDF
     - **Description:** Optical Character Recognition (OCR) is applied to extract text from handwritten PDF documents.
@@ -125,20 +121,17 @@ def methodology():
 
     methodology_info = """
 
-    ### Python-docx
-    - **Description:** The python-docx package is a Python library used for creating, reading, and modifying Microsoft Word (.docx) files. It provides a convenient API for interacting with Word documents programmatically.
-    - **Components:**        
-        - **Reading and Writing:** It reads existing Word documents and extracts text, tables, images, and other elements.
-        - **Document Structure:** It provides classes and methods for navigating through the document structure and accessing different parts of the document
-        - **Table Manipulation:** It allows you to work with tables, including creating new tables, adding rows and columns, and modifying cell content and formatting.
+    ### Data Preprocessing - Docx2CSV
+    - **Description:** The `Docx2CSV` custome function is utilized for converting Word documents to CSV format.
+    - **Components:**
+        - **Docx package:** Utilized for reading and extracting text and table data from Word documents.
     - **Significance:** This method facilitates the extraction of tabular data from Word documents and prepares it for further analysis.
 
-    ### Regular Expressions (RegEx)
-    - **Description:** RegEx is a formal language for describing text patterns
-    - **Components:** 
-        - **Data extraction:** used it for precise extraction of desired text and information from Word files
-        - **Changing date format:** used to modify the date formats present in the dataset.
-    - **Significance:** RegEx provides a powerful tool for pattern-matching and manipulation, crucial for dat extraction and ensuring consistency in date representations.
+    ### Data Preprocessing - RegEx
+    - **Description:** Regular Expressions are employed to manipulate and clean data, specifically for changing date formats.
+    - **Components:**
+        - **Changing date format:** RegEx is used to modify the date formats present in the dataset.
+    - **Significance:** RegEx provides a powerful tool for pattern-matching and manipulation, crucial for ensuring consistency in date representations.
 
     ### OCR Handwritten PDF
     - **Description:** OCR on handwritten PDFs involves several stages, including basic OCR, unstructured I/O for partitioning, and advanced OCR using `pdf2image` and transformers.
@@ -235,10 +228,48 @@ def data_preprocessing():
 
 
 def transaction_analysis():
-    st.header("Transactions NLP Analysis")
+    st.header("Transaction NLP Analysis")
+
+    st.markdown("""
+    ## Classification of Transactions into Categories
+    We categorized transactions into 11 distinct categories for precise analysis:
+
+    - **0- Business and Trade:** Non-agricultural income/expenditure.
+    - **1- Agriculture:** Agriculture-related transactions.
+    - **2- Travel and Transport:** Includes fuel/gas.
+    - **3- Gifts:** Financial gifts from relatives or friends.
+    - **4- Household:** Related to household items, like firewood, repairs, etc.
+    - **5- Consumables:** Food, water, etc.
+    - **6- Financial Management:** Loan repayment, interest, etc.
+    - **7- Health Care:** Hospital and healthcare finances.
+    - **8- WAG:** Transactions related to WAG savings.
+    - **9- Personal:** Purchases like hair braiding, clothes, shoes, etc.
+    - **10- Miscellaneous:** Other transactions, like church offerings, Christmas expenses, etc.
+
+    ## Initial Approach for Categorization
+    Initial attempts using LDA and clustering failed due to the sentence-like structure of transactions.
+
+    ## Data Preparation
+    To create a balanced training dataset, we manually handpicked 10 rows from each category.
+
+    ## Model Training and Application
+    We developed a text processing pipeline incorporating TF-IDF Vectorization and Multinomial Naive Bayes. This approach was applied to the curated dataset, yielding precise classification.
+
+    ## Outcome
+    This method achieved higher accuracy than previous attempts, successfully labeling all transactions into appropriate categories.
+
+    ## Exploring Advanced Methods
+    Subsequently, we experimented with a pre-trained model for zero-shot classification using Hugging Face's `facebook/bart-large-mnli`.
+
+    ## Outcome
+    This method also showed similar results in the classification process. 
+
+    ## Comparing Methods
+    We are currently comparing the results of the TF-IDF Vectorization with Naive Bayes approach and the zero-shot classification method to determine the best fit for our project needs.
+    """)
+
 
 def visualization():
-    global map
     import streamlit as st
     import numpy as np
     import pandas as pd
@@ -246,12 +277,12 @@ def visualization():
     import matplotlib.pyplot as plt
     import seaborn as sns
     from scipy import stats
-    import folium
-    import geopandas
-    from shapely.geometry import Point
-    from streamlit_folium import st_folium
+    from scipy.stats import shapiro, probplot
 
     st.header("Dataset Information")
+    # st.subheader("Tableau Dashboard")
+    # tableau_url = "https://your-tableau-dashboard-url"
+    # components.iframe(tableau_url, height=800, scrolling=True)
 
     # Load the dataset
     df = pd.read_csv("Financial_Diaries.csv", na_values={'transaction_comment': ''},
@@ -272,6 +303,21 @@ def visualization():
     st.write(f"Number of Rows: {df.shape[0]}")
     st.write(f"Number of Columns: {df.shape[1]}")
 
+    # Display first 6 unique values for each column
+    # st.subheader("Data Structure")
+    # info_df = pd.DataFrame(columns=["Column Name", "Data Type", "Non-Null Count", "Unique Values"])
+    # for column in df.columns:
+    #     info_series = df[column].describe()
+    #     data_type = df[column].dtype
+    #     unique_values = df[column].unique()[:6]
+    #     info_df = info_df.append({"Column Name": column,
+    #                               "Data Type": data_type,
+    #                               "Non-Null Count": info_series["count"],
+    #                               "Unique Values": ", ".join(map(str, unique_values))},
+    #                              ignore_index=True)
+    # st.write(info_df)
+    #
+    # st.divider()
     st.subheader("Data Structure")
     info_data = []
     for column in df.columns:
@@ -307,6 +353,8 @@ def visualization():
     # Plot histogram and density plot
     mean_val = df_filtered["Transaction_Amount"].mean()
     median_val = df_filtered["Transaction_Amount"].median()
+    # mode_val = stats.mode(df_filtered["Transaction_Amount"]).mode[0]
+    # mode_val = stats.mode(df_filtered["Transaction_Amount"])[0][0]
     mode_val = stats.mode(df_filtered["Transaction_Amount"]).mode.item()
 
     plt.figure(figsize=(10, 6))
@@ -475,20 +523,6 @@ def visualization():
     st.divider()
 
 
-    #%%
-    import pandas as pd
-    import folium
-    df = pd.read_csv('test.csv')
-
-    map = folium.Map(location=[9.0820, 8.6753], zoom_start=7, tiles='cartodbpositron')
-
-    for i in range(len(df)):
-        coords = (df.iloc[i]["Region_Latitude"], df.iloc[i]["Region_Longitude"])
-        folium.Marker(coords, popup=df.iloc[i]["Region"]).add_to(map)
-
-    map.save("map_region.html")
-
-
     # Hypothesis test
     st.header("Hypothesis Test")
     st.write('Hypothesis testing is a statistical method used to determine whether a hypothesis is statistically significant.'
@@ -497,6 +531,13 @@ def visualization():
     # All Transaction amount
     wag_transaction_amount_log = np.log(df_filtered[df_filtered['Member_Status'] == 'WAG']['Transaction_Amount'])
     non_wag_transaction_amount_log = np.log(df_filtered[df_filtered['Member_Status'] == 'NON WAG']['Transaction_Amount'])
+
+    # Shapiro-Wilk test for normality
+    # shapiro_stat_in_group, shapiro_p_in_group = shapiro(wag_transaction_amount_log)
+    # shapiro_stat_not_in_group, shapiro_p_not_in_group = shapiro(non_wag_transaction_amount_log)
+    # st.write("Shapiro-Wilk test for normality:")
+    # st.write("In Group - Statistic:", shapiro_stat_in_group, " p-value:", "{:.4f}".format(shapiro_p_in_group))
+    # st.write("Not In Group - Statistic:", shapiro_stat_not_in_group, " p-value:", "{:.4f}".format(shapiro_p_not_in_group))
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.hist(wag_transaction_amount_log, bins=20, alpha=0.5, color='red', label='WAG')
@@ -518,6 +559,43 @@ def visualization():
     else:
         st.write("**Fail to reject the null hypothesis**, there is no significant difference in the mean transaction amount between the two groups.")
     st.divider()
+
+    # # Fixed transaction amount
+    # st.markdown("- If there is a significant difference in :blue[**the mean fixed transaction amount**] between WAG and NON WAG?")
+    # fixed_wag = np.log(
+    #     df_filtered[(df_filtered['Member_Status'] == 'WAG') & (df_filtered['Transaction_Nature'] == 'Fixed')][
+    #         'Transaction_Amount'])
+    # fixed_non_wag = np.log(
+    #     df_filtered[(df_filtered['Member_Status'] == 'NON WAG') & (df_filtered['Transaction_Nature'] == 'Fixed')][
+    #         'Transaction_Amount'])
+    #
+    # t_stat, p_value = stats.ttest_ind(fixed_wag, fixed_non_wag)
+    #
+    # alpha = 0.05
+    # if p_value < alpha:
+    #     st.write("**Reject the null hypothesis**, there is a significant difference in the mean fixed transaction amount between the two groups.")
+    # else:
+    #     st.write("**Fail to reject the null hypothesis**,"
+    #              "there is no significant difference in the mean fixed transaction amount between the two groups.")
+    # st.divider()
+    #
+    # # Variable transaction amount
+    # st.markdown("- If there is a significant difference in :blue[**the mean variable transaction amount**] between WAG and NON WAG?")
+    # var_wag = np.log(
+    #     df_filtered[(df_filtered['Member_Status'] == 'WAG') & (df_filtered['Transaction_Nature'] == 'Variable')][
+    #         'Transaction_Amount'])
+    # var_non_wag = np.log(
+    #     df_filtered[(df_filtered['Member_Status'] == 'NON WAG') & (df_filtered['Transaction_Nature'] == 'Variable')][
+    #         'Transaction_Amount'])
+    #
+    # t_stat, p_value = stats.ttest_ind(var_wag, var_non_wag)
+    #
+    # alpha = 0.05
+    # if p_value < alpha:
+    #     st.write("**Reject the null hypothesis**, there is a significant difference in the mean variable transaction amount between the two groups.")
+    # else:
+    #     st.write("**Fail to reject the null hypothesis**, there is no significant difference in the mean variable transaction amount between the two groups.")
+
 
     # Chi-square test
     st.header("Chi-square Test")
@@ -545,15 +623,6 @@ def visualization():
         st.write("**Reject the null hypothesis**, there is a significant relationship between Member Status(NON WAG, WAG) and Transaction Nature(Fixed, Variable).")
     else:
         st.write("**Fail to reject the null hypothesis**, there is no significant relationship between Member Status(NON WAG, WAG) and Transaction Nature(Fixed, Variable).")
-
-def geo_visualization():
-    main_state()
-    plots('State')
-
-    st.divider()
-
-    main_region()
-    plots('Region')
 
 
 def challenges():
@@ -599,4 +668,3 @@ def further_analysis():
 
 if __name__ == "__main__":
     main()
-
