@@ -5,7 +5,7 @@ import pandas as pd
 from pathlib import Path
 from streamlit.components.v1 import components
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
-from source_code.geo_viz import init_map, create_point_map, plot_from_df, load_df, load_map_region, load_map_state, main_region, main_state, plots
+# from source_code.geo_viz import init_map, create_point_map, plot_from_df, load_df, load_map_region, load_map_state, main_region, main_state, plots
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
 from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
 st.set_option('deprecation.showPyplotGlobalUse', False)
@@ -21,10 +21,15 @@ def main():
     st.write("[Trello Board](https://trello.com/b/ytzd5Ve7/dats6501-brooklyn-chen-sanjana-godolkar)")
 
     # Sidebar navigation
+    # page = st.sidebar.selectbox("Select a page",
+    #                             ["Project Overview", "Main Tasks", "Methodology",
+    #                              "Data Preprocessing", "OCR Handwritten PDF", "Transaction Analysis",
+    #                              "Visual Analysis", "Geovisualization", "Challenges", "Conclusion", "Project Impact & Application"])
+
     page = st.sidebar.selectbox("Select a page",
                                 ["Project Overview", "Main Tasks", "Methodology",
                                  "Data Preprocessing", "OCR Handwritten PDF", "Transaction Analysis",
-                                 "Visual Analysis", "Geovisualization", "Challenges", "Conclusion", "Further Tasks"])
+                                 "Visual Analysis", "Challenges", "Conclusion", "Project Impact & Application"])
 
     # Page content
     if page == "Project Overview":
@@ -41,13 +46,13 @@ def main():
         transaction_analysis()
     elif page == "Visual Analysis":
         visualization()
-    elif page == "Geovisualization":
-        geo_visualization()
+    # elif page == "Geovisualization":
+    #     geo_visualization()
     elif page == "Challenges":
         challenges()
     elif page == "Conclusion":
         conclusion()
-    elif page == "Further Tasks":
+    elif page == "Project Impact & Application":
         further_analysis()
 
 def project_overview():
@@ -239,7 +244,7 @@ def transaction_analysis():
     st.header("Transaction NLP Analysis")
 
     st.markdown("""
-    ## Classification of Transactions into Categories
+    ### Classification of Transactions into Categories
     We categorized transactions into 11 distinct categories for precise analysis:
 
     - **0- Business and Trade:** Non-agricultural income/expenditure.
@@ -254,25 +259,26 @@ def transaction_analysis():
     - **9- Personal:** Purchases like hair braiding, clothes, shoes, etc.
     - **10- Miscellaneous:** Other transactions, like church offerings, Christmas expenses, etc.
 
-    ## Initial Approach for Categorization
+    **Initial Approach for Categorization**
     Initial attempts using LDA and clustering failed due to the sentence-like structure of transactions.
 
-    ## Data Preparation
+    ### Using TF-IDF + NB Classification
+    **Data Preparation**
     To create a balanced training dataset, we manually handpicked 10 rows from each category.
 
-    ## Model Training and Application
+    **Model Training and Application**
     We developed a text processing pipeline incorporating TF-IDF Vectorization and Multinomial Naive Bayes. This approach was applied to the curated dataset, yielding precise classification.
 
-    ## Outcome
+    **Outcome**
     This method achieved higher accuracy than previous attempts, successfully labeling all transactions into appropriate categories.
 
-    ## Exploring Advanced Methods
+    ### Exploring Advanced Methods
     Subsequently, we experimented with a pre-trained model for zero-shot classification using Hugging Face's `facebook/bart-large-mnli`.
 
-    ## Outcome
+    **Outcome**
     This method also showed similar results in the classification process. 
 
-    ## Comparing Methods
+    ### Comparing Methods
     We are currently comparing the results of the TF-IDF Vectorization with Naive Bayes approach and the zero-shot classification method to determine the best fit for our project needs.
     """)
 
@@ -572,23 +578,19 @@ def visualization():
         st.write("**Reject the null hypothesis**, there is a significant relationship between Member Status(NON WAG, WAG) and Transaction Nature(Fixed, Variable).")
     else:
         st.write("**Fail to reject the null hypothesis**, there is no significant relationship between Member Status(NON WAG, WAG) and Transaction Nature(Fixed, Variable).")
-def geo_visualization():
-    main_state()
-    plots('State')
-
-    st.divider()
-
-    main_region()
-    plots('Region')
+# def geo_visualization():
+#     main_state()
+#     plots('State')
+#
+#     st.divider()
+#
+#     main_region()
+#     plots('Region')
 
 def challenges():
     st.header("Challenge")
 
     challenge_info = """
-
-    ### Communication with WB
-    - **Description:** This challenge involves effective communication with the World Bank to shape and align the project with their expectations and requirements.
-    - **Significance:** Ensuring clear communication helps in understanding and meeting the objectives set by the World Bank, leading to a successful collaboration.
 
     ### Unstructured Data
     - **Description:** The project deals with unstructured data in the form of MS Word docx files and handwritten PDF files.
@@ -620,7 +622,21 @@ def conclusion():
     """)
 
 def further_analysis():
-    st.header("further_analysis")
+    st.header("Project Impact & Application")
+    markdown_text = """
+
+### Automation on Data Preprocessing
+- We successfully completed the **automation of data preprocessing** for MS Word Docx files, converting them into newly structured CSV files.
+- Through automated data cleaning and NLP text classification, the CSV files became more **analyzable and structured** for further analysis.
+- 🔄 This part is :green[**reusable**] with any new MS Word Docx files if they are written in the same template. Once new Docx files are added, the data preprocessing part will automatically update the CSV files.
+
+### Data Visualization & Hypothesis Testing
+- With the structured CSV files, we performed data visualization and conducted statistical hypothesis testing.
+- Visualizations provided valuable insights into patterns and trends within the transaction data, such as the distribution of transaction amounts, popular categories, and differences between WAG and non-WAG members.
+- Hypothesis tests allowed us to statistically examine potential relationships, such as whether there were significant differences in mean transaction amounts between the two member groups.
+- 💡 Overall, **restructuring the raw data** enabled comprehensive analysis through visualizations and statistical methods, unlocking **deeper insights**.
+"""
+    st.markdown(markdown_text)
 
 if __name__ == "__main__":
     main()
