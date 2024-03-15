@@ -1,0 +1,7 @@
+folium==0.12.1
+geopandas==0.9.0
+pandas==1.3.3p
+wordcloud==1.8.1
+matplotlib==3.4.3
+seaborn==0.11.2
+streamlit-folium==0.6.0
