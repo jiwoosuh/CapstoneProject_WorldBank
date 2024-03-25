@@ -179,7 +179,7 @@ def pdf_ocr():
     st.header("OCR Handwritten PDF")
     data_folder = Path(os.getcwd()) / 'Data'
     pdf_files = get_list_of_files(data_folder, '**/*.pdf', '.pdf')
-    user_input = st.text_input("Enter text from PDF:", "")
+    # user_input = st.text_input("Enter text from PDF:")
 
     for pdf_file in pdf_files:
         st.write(f"Processing PDF: {pdf_file}")
@@ -191,11 +191,11 @@ def pdf_ocr():
 
             # Perform OCR on the image
             text = ocr_handwritten_text(image)
-            user_input = st.text_area("Enter your handwritten text:", "")
+            # user_input = st.text_area("Enter your handwritten text:", "")
 
             # Display OCR results
             st.write(f"Page {idx + 1} OCR Result:\n{text}\n")
-            st.write(f"Page {idx + 1} User Input:\n{user_input}\n")
+            # st.write(f"Page {idx + 1} User Input:\n{user_input}\n")
 
 
 def manual_update():
@@ -221,9 +221,9 @@ def manual_update():
             state = st.selectbox("State:", unique_values['State'])
             region = st.selectbox("Region:", unique_values['Region'])
             member_status = st.selectbox("Member_Status:", unique_values['Member_Status'])
-            file_name = st.selectbox("File_Name:", unique_values['File_Name'])
+            file_name = st.text_input("File_Name:")
             respondent_id = st.text_input("Respondent ID:")
-            date = st.date_input("Date:")
+            date = st.text_input("Date(DD/MM/YYYY):")
             week = st.number_input("Week:", min_value = 1,max_value=5)
             transaction_nature = st.selectbox("Transaction_Nature:", unique_values['Transaction_Nature'])
             transaction_type = st.selectbox("Transaction_Type:", unique_values['Transaction_Type'])
@@ -231,26 +231,40 @@ def manual_update():
             category_name = st.selectbox("Category_Name:", unique_values['Category_Name'])
             transaction_name = st.text_input("Transaction_Name:")
             transaction_amount = st.number_input("Transaction_Amount:")
-            transaction_comment = st.selectbox("Transaction_Comment:", unique_values['Transaction_Comment'])
+            transaction_comment = st.text_input("Transaction_Comment:")
+            formatted_date = clean_date_format(date)
 
             if st.button("Update Row"):
                 # Call functions to update tabular data
                 updated_row_data = [fd_name, state, region, member_status, file_name, respondent_id, date, week,
                                     transaction_nature, transaction_type, transaction_category, category_name,
-                                    transaction_name, transaction_amount, transaction_comment]
+                                    transaction_name, transaction_amount, transaction_comment,formatted_date]
                 # Update tabular data with the new row data
-                updated_data = update_tabular_data(old_data, updated_row_data)
+                updated_data = update_tabular_data(df, updated_row_data)
                 st.success("Row Updated Successfully!")
                 st.dataframe(updated_data.tail())
 
+                updated_data_csv = updated_data.to_csv(index=False, encoding='utf-8')
+                # new_file_name = st.text_input("Type New File Name:")
+
+
+                st.download_button(
+                    label="Download data as CSV",
+                    data=updated_data_csv,
+                    file_name="Updated_data.csv",
+                    mime='text/csv',
+                )
+
     def update_tabular_data(old_data, updated_row_data):
-        if not old_data.endswith('.csv'):
-            raise ValueError("The provided old_data is not a CSV file.")
-        old_data = pd.read_csv(old_data)
+        # if not old_data.endswith('.csv'):
+        #     raise ValueError("The provided old_data is not a CSV file.")
+        # old_data = pd.read_csv(old_data)
         new_row = pd.DataFrame([updated_row_data], columns=old_data.columns)
-        updated_data = old_data.append(new_row, ignore_index=True)
-        updated_data.to_csv("updated_tabular_data.csv", index=False)
+        updated_data = pd.concat([old_data, new_row], ignore_index=True)
+        # updated_data = old_data.append(new_row, ignore_index=True)
         return updated_data
+
+
 
     # User input for the old data file
     old_data = st.file_uploader("Choose a CSV file to update")
@@ -258,6 +272,9 @@ def manual_update():
     # Call the function to update tabular data manually
     if old_data is not None:
         manual_update(old_data)
+
+
+
 
 
 
