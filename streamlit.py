@@ -28,7 +28,7 @@ def main():
 
     page = st.sidebar.selectbox("Select a page",
                                 ["Project Overview", "Main Tasks", "Methodology",
-                                 "Data Preprocessing", "OCR Handwritten PDF", "Transaction Analysis",
+                                 "Data Preprocessing", "OCR Handwritten PDF", "Update Data Manually", "Transaction Analysis",
                                  "Visual Analysis", "Challenges", "Conclusion", "Project Impact & Application"])
 
     # Page content
@@ -42,6 +42,8 @@ def main():
         data_preprocessing()
     elif page == "OCR Handwritten PDF":
         pdf_ocr()
+    elif page == "Update Data Manually":
+        manual_update()
     elif page == "Transaction Analysis":
         transaction_analysis()
     elif page == "Visual Analysis":
@@ -177,6 +179,7 @@ def pdf_ocr():
     st.header("OCR Handwritten PDF")
     data_folder = Path(os.getcwd()) / 'Data'
     pdf_files = get_list_of_files(data_folder, '**/*.pdf', '.pdf')
+    user_input = st.text_input("Enter text from PDF:", "")
 
     for pdf_file in pdf_files:
         st.write(f"Processing PDF: {pdf_file}")
@@ -188,9 +191,74 @@ def pdf_ocr():
 
             # Perform OCR on the image
             text = ocr_handwritten_text(image)
+            user_input = st.text_area("Enter your handwritten text:", "")
 
             # Display OCR results
             st.write(f"Page {idx + 1} OCR Result:\n{text}\n")
+            st.write(f"Page {idx + 1} User Input:\n{user_input}\n")
+
+
+def manual_update():
+    st.header("Update Tabular Data Manually")
+
+    def get_unique_values(df):
+        unique_values_by_column = {}
+        for column in df.columns:
+            unique_values_by_column[column] = df[column].unique()
+        return unique_values_by_column
+
+    def manual_update(old_data):
+        st.header("Update Tabular Data Manually")
+
+        # Load old data
+        if old_data is not None:
+            df = pd.read_csv(old_data)
+            unique_values = get_unique_values(df)
+
+            # Create select boxes for input variables based on unique values
+            st.subheader("Enter Variable Values:")
+            fd_name = st.text_input("FD_Name:")
+            state = st.selectbox("State:", unique_values['State'])
+            region = st.selectbox("Region:", unique_values['Region'])
+            member_status = st.selectbox("Member_Status:", unique_values['Member_Status'])
+            file_name = st.selectbox("File_Name:", unique_values['File_Name'])
+            respondent_id = st.text_input("Respondent ID:")
+            date = st.date_input("Date:")
+            week = st.number_input("Week:", min_value = 1,max_value=5)
+            transaction_nature = st.selectbox("Transaction_Nature:", unique_values['Transaction_Nature'])
+            transaction_type = st.selectbox("Transaction_Type:", unique_values['Transaction_Type'])
+            transaction_category = st.selectbox("Transaction_Category:", unique_values['Transaction_Category'])
+            category_name = st.selectbox("Category_Name:", unique_values['Category_Name'])
+            transaction_name = st.text_input("Transaction_Name:")
+            transaction_amount = st.number_input("Transaction_Amount:")
+            transaction_comment = st.selectbox("Transaction_Comment:", unique_values['Transaction_Comment'])
+
+            if st.button("Update Row"):
+                # Call functions to update tabular data
+                updated_row_data = [fd_name, state, region, member_status, file_name, respondent_id, date, week,
+                                    transaction_nature, transaction_type, transaction_category, category_name,
+                                    transaction_name, transaction_amount, transaction_comment]
+                # Update tabular data with the new row data
+                updated_data = update_tabular_data(old_data, updated_row_data)
+                st.success("Row Updated Successfully!")
+                st.dataframe(updated_data.tail())
+
+    def update_tabular_data(old_data, updated_row_data):
+        if not old_data.endswith('.csv'):
+            raise ValueError("The provided old_data is not a CSV file.")
+        old_data = pd.read_csv(old_data)
+        new_row = pd.DataFrame([updated_row_data], columns=old_data.columns)
+        updated_data = old_data.append(new_row, ignore_index=True)
+        updated_data.to_csv("updated_tabular_data.csv", index=False)
+        return updated_data
+
+    # User input for the old data file
+    old_data = st.file_uploader("Choose a CSV file to update")
+
+    # Call the function to update tabular data manually
+    if old_data is not None:
+        manual_update(old_data)
+
 
 
 def data_preprocessing():
