@@ -175,6 +175,28 @@ def methodology():
 
     st.markdown(methodology_info)
 
+# def pdf_ocr():
+#     st.header("OCR Handwritten PDF")
+#     data_folder = Path(os.getcwd()) / 'Data'
+#     pdf_files = get_list_of_files(data_folder, '**/*.pdf', '.pdf')
+#     # user_input = st.text_input("Enter text from PDF:")
+#
+#     for pdf_file in pdf_files:
+#         st.write(f"Processing PDF: {pdf_file}")
+#         images = pdf_to_images(pdf_file)
+#
+#         for idx, image in enumerate(images):
+#             # Display each page of the PDF
+#             st.image(image, caption=f"Page {idx + 1}", use_column_width=True)
+#
+#             # Perform OCR on the image
+#             text = ocr_handwritten_text(image)
+#             # user_input = st.text_area("Enter your handwritten text:", "")
+#
+#             # Display OCR results
+#             st.write(f"Page {idx + 1} OCR Result:\n{text}\n")
+#             # st.write(f"Page {idx + 1} User Input:\n{user_input}\n")
+
 def pdf_ocr():
     st.header("OCR Handwritten PDF")
     data_folder = Path(os.getcwd()) / 'Data'
@@ -196,6 +218,46 @@ def pdf_ocr():
             # Display OCR results
             st.write(f"Page {idx + 1} OCR Result:\n{text}\n")
             # st.write(f"Page {idx + 1} User Input:\n{user_input}\n")
+
+            # Define an empty DataFrame
+            df = pd.DataFrame(
+                columns=['FD_Name', 'State', 'Region', 'Member_Status', 'File_Name', 'Respondent_ID', 'Date', 'Week',
+                         'Transaction_Nature', 'Transaction_Type', 'Transaction_Category', 'Category_Name',
+                         'Transaction_Name', 'Transaction_Amount', 'Transaction_Comment', 'Formatted_Date'])
+
+            # Define column configurations
+            config = {
+                'FD_Name': st.column_config.TextColumn('FD Name'),
+                'State': st.column_config.TextColumn('State'),
+                'Region': st.column_config.TextColumn('Region'),
+                'Member_Status': st.column_config.TextColumn('Member Status'),
+                'File_Name': st.column_config.TextColumn('File Name'),
+                'Respondent_ID': st.column_config.TextColumn('Respondent ID'),
+                'Date': st.column_config.DateColumn('Date'),
+                'Week': st.column_config.NumberColumn('Week'),
+                'Transaction_Nature': st.column_config.TextColumn('Transaction Nature'),
+                'Transaction_Type': st.column_config.TextColumn('Transaction Type'),
+                'Transaction_Category': st.column_config.TextColumn('Transaction Category'),
+                'Category_Name': st.column_config.TextColumn('Category Name'),
+                'Transaction_Name': st.column_config.TextColumn('Transaction Name'),
+                'Transaction_Amount': st.column_config.NumberColumn('Transaction Amount'),
+                'Transaction_Comment': st.column_config.TextColumn('Transaction Comment'),
+                'Formatted_Date': st.column_config.TextColumn('Formatted Date')
+            }
+
+            # Generate a unique key based on PDF file name and page index for the data editor
+            editor_key = f"{pdf_file}_{idx}_editor"
+            # Generate a unique key based on PDF file name and page index for the button
+            button_key = f"{pdf_file}_{idx}_button"
+
+            # Display the data editor and get user input
+            result = st.data_editor(df, column_config=config, num_rows='dynamic', key=editor_key)
+
+            # Button to get the results
+            if st.button('Get results', key=button_key):
+                st.write(result)
+
+# pdf_ocr()
 
 
 def manual_update():
