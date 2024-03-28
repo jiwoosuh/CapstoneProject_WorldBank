@@ -40,14 +40,14 @@ def classify_transaction(transaction_name):
         'Agriculture'
     ]
     result = classifier(transaction_name, candidate_labels)
-    return result['labels'][0], result['labels'][1]
+    return result['labels'][0]
 
 
 df1 = df.iloc[:50]
 
-df1['Transaction_Category1'],df1['Transaction_Category2'] = df1['Transaction_Name'].apply(classify_transaction)
+df1['Transaction_Category1'] = df1['Transaction_Name'].apply(classify_transaction)
 
-print(df1[['Transaction_Name', 'Transaction_Category1', 'Transaction_Category2']].head(10))
+print(df1[['Transaction_Name', 'Transaction_Category1'].head(10))
 
 
 
