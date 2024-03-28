@@ -9,26 +9,45 @@ from transformers import pipeline
 
 classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
+# def classify_transaction(transaction_name):
+#     # Candidate labels based on the provided categories
+#     candidate_labels = [
+#         'Business',
+#         'Agriculture',
+#         'Travel',
+#         'Gifts',
+#         'Household',
+#         'Consumables',
+#         'Financial Management',
+#         'Health Care',
+#         'Personal',
+#         'Miscellaneous'
+#     ]
+#     result = classifier(transaction_name, candidate_labels)
+#     return result['labels'][0]
+
 def classify_transaction(transaction_name):
     # Candidate labels based on the provided categories
     candidate_labels = [
-        'Business',
-        'Agriculture',
-        'Travel',
-        'Gifts',
+        'Miscellaneous',
+        'Woman Personal',
+        'Children',
+        'Investment',
+        'Gift',
         'Household',
-        'Consumables',
-        'Financial Management',
         'Health Care',
-        'Personal',
-        'Miscellaneous'
+        'Business',
+        'Agriculture'
     ]
     result = classifier(transaction_name, candidate_labels)
-    return result['labels'][0]
+    return result['labels'][0], result['labels'][1]
 
-df['Transaction_Category'] = df['Transaction_Name'].apply(classify_transaction)
 
-print(df[['Transaction_Name', 'Transaction_Category']].head(10))
+df1 = df.iloc[:50]
+
+df1['Transaction_Category1'],df1['Transaction_Category2'] = df1['Transaction_Name'].apply(classify_transaction)
+
+print(df1[['Transaction_Name', 'Transaction_Category1', 'Transaction_Category2']].head(10))
 
 
 
