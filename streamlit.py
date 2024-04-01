@@ -41,7 +41,8 @@ def main():
     elif page == "Data Preprocessing":
         data_preprocessing()
     elif page == "OCR Handwritten PDF":
-        pdf_ocr()
+        # pdf_ocr()
+        ocr_result()
     elif page == "Update Data Manually":
         manual_update()
     elif page == "Transaction Analysis":
@@ -197,27 +198,106 @@ def methodology():
 #             st.write(f"Page {idx + 1} OCR Result:\n{text}\n")
 #             # st.write(f"Page {idx + 1} User Input:\n{user_input}\n")
 
-def pdf_ocr():
+# def pdf_ocr():
+#     st.header("OCR Handwritten PDF")
+#     data_folder = Path(os.getcwd()) / 'Data'
+#     pdf_files = get_list_of_files(data_folder, '**/*.pdf', '.pdf')
+#     # user_input = st.text_input("Enter text from PDF:")
+#
+#     for pdf_file in pdf_files:
+#         st.write(f"Processing PDF: {pdf_file}")
+#         images = pdf_to_images(pdf_file)
+#
+#         for idx, image in enumerate(images):
+#             # Display each page of the PDF
+#             st.image(image, caption=f"Page {idx + 1}", use_column_width=True)
+#
+#             # Perform OCR on the image
+#             text = ocr_handwritten_text(image)
+#             # user_input = st.text_area("Enter your handwritten text:", "")
+#
+#             # Display OCR results
+#             st.write(f"Page {idx + 1} OCR Result:\n{text}\n")
+#             # st.write(f"Page {idx + 1} User Input:\n{user_input}\n")
+#
+#             # Define an empty DataFrame
+#             df = pd.DataFrame(
+#                 columns=['FD_Name', 'State', 'Region', 'Member_Status', 'File_Name', 'Respondent_ID', 'Date', 'Week',
+#                          'Transaction_Nature', 'Transaction_Type', 'Transaction_Category', 'Category_Name',
+#                          'Transaction_Name', 'Transaction_Amount', 'Transaction_Comment', 'Formatted_Date'])
+#
+#             # Define column configurations
+#             config = {
+#                 'FD_Name': st.column_config.TextColumn('FD Name'),
+#                 'State': st.column_config.TextColumn('State'),
+#                 'Region': st.column_config.TextColumn('Region'),
+#                 'Member_Status': st.column_config.TextColumn('Member Status'),
+#                 'File_Name': st.column_config.TextColumn('File Name'),
+#                 'Respondent_ID': st.column_config.TextColumn('Respondent ID'),
+#                 'Date': st.column_config.DateColumn('Date'),
+#                 'Week': st.column_config.NumberColumn('Week'),
+#                 'Transaction_Nature': st.column_config.TextColumn('Transaction Nature'),
+#                 'Transaction_Type': st.column_config.TextColumn('Transaction Type'),
+#                 'Transaction_Category': st.column_config.TextColumn('Transaction Category'),
+#                 'Category_Name': st.column_config.TextColumn('Category Name'),
+#                 'Transaction_Name': st.column_config.TextColumn('Transaction Name'),
+#                 'Transaction_Amount': st.column_config.NumberColumn('Transaction Amount'),
+#                 'Transaction_Comment': st.column_config.TextColumn('Transaction Comment'),
+#                 'Formatted_Date': st.column_config.TextColumn('Formatted Date')
+#             }
+#
+#             # Generate a unique key based on PDF file name and page index for the data editor
+#             editor_key = f"{pdf_file}_{idx}_editor"
+#             # Generate a unique key based on PDF file name and page index for the button
+#             button_key = f"{pdf_file}_{idx}_button"
+#
+#             # Display the data editor and get user input
+#             result = st.data_editor(df, column_config=config, num_rows='dynamic', key=editor_key)
+#
+#             # Button to get the results
+#             if st.button('Get results', key=button_key):
+#                 st.write(result)
+
+import os
+from pathlib import Path
+import streamlit as st
+import pandas as pd
+import cv2
+import numpy as np
+import easyocr
+from pdf2image import convert_from_path
+
+def ocr_result():
     st.header("OCR Handwritten PDF")
     data_folder = Path(os.getcwd()) / 'Data'
     pdf_files = get_list_of_files(data_folder, '**/*.pdf', '.pdf')
     # user_input = st.text_input("Enter text from PDF:")
 
+
     for pdf_file in pdf_files:
         st.write(f"Processing PDF: {pdf_file}")
-        images = pdf_to_images(pdf_file)
+        pages = convert_from_path(pdf_file)
+        reader = easyocr.Reader(['en'], gpu=True)
 
-        for idx, image in enumerate(images):
-            # Display each page of the PDF
-            st.image(image, caption=f"Page {idx + 1}", use_column_width=True)
+        # Loop through each page
+        for idx, page in enumerate(pages):
+            # Convert PIL image to OpenCV format
+            image = cv2.cvtColor(np.array(page), cv2.COLOR_RGB2BGR)
 
-            # Perform OCR on the image
-            text = ocr_handwritten_text(image)
-            # user_input = st.text_area("Enter your handwritten text:", "")
+            # Sharpen the image
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            sharpen_kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+            sharpen = cv2.filter2D(gray, -1, sharpen_kernel)
+
+            # Thresholding
+            thresh = cv2.threshold(sharpen, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+
+            # Perform OCR
+            ocr_results = reader.readtext(thresh, detail=0)
 
             # Display OCR results
-            st.write(f"Page {idx + 1} OCR Result:\n{text}\n")
-            # st.write(f"Page {idx + 1} User Input:\n{user_input}\n")
+            st.image(image, caption=f"Page {idx + 1}", use_column_width=True)
+            st.write(f"Page {idx + 1} OCR Result:\n{ocr_results}\n")
 
             # Define an empty DataFrame
             df = pd.DataFrame(
@@ -257,21 +337,11 @@ def pdf_ocr():
             if st.button('Get results', key=button_key):
                 st.write(result)
 
-# pdf_ocr()
-
-
 def manual_update():
     st.header("Update Tabular Data Manually")
 
-    def get_unique_values(df):
-        unique_values_by_column = {}
-        for column in df.columns:
-            unique_values_by_column[column] = df[column].unique()
-        return unique_values_by_column
-
     def manual_update(old_data):
-        st.header("Update Tabular Data Manually")
-
+        # st.header("Update Tabular Data Manually")
         # Load old data
         if old_data is not None:
             df = pd.read_csv(old_data)
@@ -334,8 +404,6 @@ def manual_update():
     # Call the function to update tabular data manually
     if old_data is not None:
         manual_update(old_data)
-
-
 
 
 
