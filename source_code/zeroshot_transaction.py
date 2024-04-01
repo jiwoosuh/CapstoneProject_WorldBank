@@ -43,11 +43,10 @@ def classify_transaction(transaction_name):
     return result['labels'][0]
 
 
-df1 = df.iloc[:50]
+# df1 = df.iloc[:50]
 
-df1['Transaction_Category1'] = df1['Transaction_Name'].apply(classify_transaction)
+df['Transaction_Category1'] = df['Transaction_Name'].apply(classify_transaction)
 
-print(df1[['Transaction_Name', 'Transaction_Category1'].head(10))
+print(df[['Transaction_Name','Transaction_Category1']].head(10))
 
-
-
+df.to_csv('Financial_Diaries_withZeroShot.csv')
