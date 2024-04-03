@@ -26,9 +26,10 @@ classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnl
 #     result = classifier(transaction_name, candidate_labels)
 #     return result['labels'][0]
 
+
+
 def classify_transaction(transaction_name):
-    # Candidate labels based on the provided categories
-    candidate_labels = [
+    labels = [
         'Miscellaneous',
         'Woman Personal',
         'Children',
@@ -39,13 +40,13 @@ def classify_transaction(transaction_name):
         'Business',
         'Agriculture'
     ]
-    result = classifier(transaction_name, candidate_labels)
+    result = classifier(transaction_name, labels)
     return result['labels'][0]
 
 
 # df1 = df.iloc[:50]
 
-df['Transaction_Category1'] = df['Transaction_Name'].apply(classify_transaction)
+df['Transaction_Category1'][:10] = df['Transaction_Name'][:10].apply(classify_transaction)
 
 print(df[['Transaction_Name','Transaction_Category1']].head(10))
 
