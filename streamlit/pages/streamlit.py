@@ -1,14 +1,18 @@
 import streamlit as st
 import os
 import csv
+import sys
+from pathlib import Path
 import pandas as pd
 from pathlib import Path
 from streamlit.components.v1 import components
+st.set_option('deprecation.showPyplotGlobalUse', False)
+sys.path.append(Path(os.getcwd()).parent)
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 # from source_code.geo_viz import init_map, create_point_map, plot_from_df, load_df, load_map_region, load_map_state, main_region, main_state, plots
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
 from source_code.pdf2csv import pdf_to_images,ocr_handwritten_text, get_list_of_files
-st.set_option('deprecation.showPyplotGlobalUse', False)
+
 
 def main():
     st.set_page_config(layout='wide')
