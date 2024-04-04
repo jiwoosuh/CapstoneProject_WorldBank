@@ -4,6 +4,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 
+####################################################################################################################################
+#This code has a bunch of potential plots for interactive dashboard. We will discuss in person about which ones to keep and which
+#ones to discard. Please Ignore for now. 
+#Still need to add the Left side bar and intereactive features from plotly.
+####################################################################################################################################
+
+
 # Load the dataset
 df = pd.read_csv('Financial_Diaries_Modified.csv')
 
@@ -104,3 +111,135 @@ plt.tight_layout()
 
 # Display in Streamlit
 st.pyplot(fig)
+
+
+# Set page config
+st.set_page_config(page_title="Financial Diaries Dashboard", layout="wide")
+
+# Title for the dashboard
+st.title("Financial Diaries Dashboard")
+
+# State vs Transaction Type vs Amounts
+st.subheader('Total Transaction Amounts by State and Transaction Type')
+plt.figure(figsize=(15, 8))
+sns.barplot(x='State', y='Transaction_Amount', hue='Transaction_Type', data=df, estimator=sum, palette='Blues')
+plt.title('Total Transaction Amounts by State and Transaction Type')
+plt.xlabel('State')
+plt.ylabel('Sum of Transaction Amounts')
+plt.legend(title='Transaction Type')
+st.pyplot(plt.gcf())
+
+# Region vs Transaction Type vs Amounts
+st.subheader('Total Transaction Amounts by Region and Transaction Type')
+plt.figure(figsize=(15, 8))
+sns.barplot(x='Region', y='Transaction_Amount', hue='Transaction_Type', data=df, estimator=sum, palette='Blues')
+plt.title('Total Transaction Amounts by Region and Transaction Type')
+plt.xlabel('Region')
+plt.ylabel('Sum of Transaction Amounts')
+plt.legend(title='Transaction Type')
+st.pyplot(plt.gcf())
+
+# Week vs Transaction Category
+st.subheader('Transaction Categories per Week')
+plt.figure(figsize=(15, 8))
+sns.countplot(x='Week', hue='Transaction_Category1', data=df)
+plt.title('Transaction Categories per Week')
+plt.xlabel('Week')
+plt.ylabel('Count')
+plt.legend(title='Transaction Category', bbox_to_anchor=(1.05, 1), loc=2)
+st.pyplot(plt.gcf())
+
+# Week vs Transaction Type vs Amounts
+st.subheader('Total Transaction Amounts by Week and Transaction Type')
+plt.figure(figsize=(15, 8))
+sns.barplot(x='Week', y='Transaction_Amount', hue='Transaction_Type', data=df, estimator=sum, palette='Blues')
+plt.title('Total Transaction Amounts by Week and Transaction Type')
+plt.xlabel('Week')
+plt.ylabel('Sum of Transaction Amounts')
+plt.legend(title='Transaction Type')
+st.pyplot(plt.gcf())
+
+# Category vs Amounts
+st.subheader('Total Transaction Amounts by Category')
+plt.figure(figsize=(15, 8))
+sns.barplot(x='Transaction_Category1', y='Transaction_Amount', data=df, estimator=sum, palette='Blues')
+plt.title('Total Transaction Amounts by Category')
+plt.xlabel('Transaction Category')
+plt.xticks(rotation=90)
+plt.ylabel('Sum of Transaction Amounts')
+st.pyplot(plt.gcf())
+
+# State-wise Average Transaction Amount over Time
+st.subheader('State-wise Average Transaction Amount Over Time')
+plt.figure(figsize=(14, 7))
+sns.lineplot(data=df, x='Week', y='Transaction_Amount', hue='State', estimator='mean', marker='o', palette='Blues')
+plt.title('State-wise Average Transaction Amount Over Time')
+plt.xlabel('Week')
+plt.ylabel('Average Transaction Amount')
+plt.legend(title='State')
+st.pyplot(plt.gcf())
+
+# Transaction Type Frequency by Region
+st.subheader('Transaction Type Frequency by Region')
+transaction_type_freq = df.groupby(['Region', 'Transaction_Type']).size().unstack(fill_value=0)
+transaction_type_freq.plot(kind='bar', stacked=True, figsize=(14, 7), color=sns.color_palette('Blues'))
+plt.title('Transaction Type Frequency by Region')
+plt.xlabel('Region')
+plt.ylabel('Frequency')
+st.pyplot(plt.gcf())
+
+# Transaction Category vs. Member Status vs. Amount (Bubble Chart)
+st.subheader('Transaction Category vs. Member Status vs. Amount')
+plt.figure(figsize=(14, 7))
+bubble_size = df['Transaction_Amount'].div(df['Transaction_Amount'].max()) * 1000  # Normalizing for bubble size
+sns.scatterplot(data=df, x='Transaction_Category1', y='Member_Status', size=bubble_size, legend=False, sizes=(20, 500), hue='Transaction_Type', palette='Blues')
+plt.title('Transaction Category vs. Member Status vs. Amount')
+plt.xlabel('Transaction Category')
+plt.ylabel('Member Status')
+st.pyplot(plt.gcf())
+
+# Boxplot of Transaction Amounts by Category and Type
+st.subheader('Boxplot of Transaction Amounts by Category and Type')
+plt.figure(figsize=(14, 7))
+sns.boxplot(data=df, x='Transaction_Category1', y='Transaction_Amount', hue='Transaction_Type', palette='Blues')
+plt.title('Boxplot of Transaction Amounts by Category and Type')
+plt.xlabel('Transaction Category')
+plt.ylabel('Transaction Amount')
+plt.legend(title='Transaction Type')
+plt.xticks(rotation=90)
+st.pyplot(plt.gcf())
+
+# Expenditure vs. Income over Time
+st.subheader('Expenditure vs. Income Over Time')
+df['Transaction_Type_Coded'] = df['Transaction_Type'].map({'Income': 1, 'Expenditure': -1})
+df['Signed_Amount'] = df['Transaction_Amount'] * df['Transaction_Type_Coded']
+plt.figure(figsize=(14, 7))
+df_income = df[df['Transaction_Type_Coded'] == 1].groupby('Week')['Transaction_Amount'].sum()
+df_expenditure = df[df['Transaction_Type_Coded'] == -1].groupby('Week')['Transaction_Amount'].sum().abs()
+plt.plot(df_income.index, df_income.values, label='Income', marker='o', color='blue')
+plt.plot(df_expenditure.index, df_expenditure.values, label='Expenditure', marker='o', color='darkblue')
+plt.title('Expenditure vs. Income Over Time')
+plt.xlabel('Week')
+plt.ylabel('Amount')
+plt.legend()
+st.pyplot(plt.gcf())
+
+# Comparative Histogram of Transaction Amounts
+st.subheader('Comparative Histogram of Transaction Amounts')
+plt.figure(figsize=(14, 7))
+sns.histplot(data=df, x='Transaction_Amount', hue='State', element='step', bins=30, palette='Blues')
+plt.title('Comparative Histogram of Transaction Amounts')
+plt.xlabel('Transaction Amount')
+plt.ylabel('Density')
+plt.legend(title='State')
+st.pyplot(plt.gcf())
+
+# Scatter Plot of Transaction Amount vs. Week with Hue for Region
+st.subheader('Scatter Plot of Transaction Amount vs. Week with Hue for Region')
+plt.figure(figsize=(14, 7))
+sns.scatterplot(data=df, x='Week', y='Transaction_Amount', hue='Region', palette='Blues')
+plt.title('Scatter Plot of Transaction Amount vs. Week with Hue for Region')
+plt.xlabel('Week')
+plt.ylabel('Transaction Amount')
+plt.legend(title='Region')
+st.pyplot(plt.gcf())
