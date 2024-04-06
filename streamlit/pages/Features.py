@@ -14,6 +14,9 @@ from pdf2image import convert_from_path
 import easyocr
 import sys
 from pathlib import Path
+import nltk
+from nltk.corpus import stopwords
+from collections import Counter
 from pathlib import PosixPath
 st.set_option('deprecation.showPyplotGlobalUse', False)
 sys.path.append(Path(os.getcwd()).parent)
@@ -28,7 +31,7 @@ st.set_page_config(
 )
 
 st.markdown(
-    f'<h1 style="background-color:#378CE7; color:white; text-align:center; border-radius: 10px;">Docx2Dashboard</h1>',
+    f'<h1 style="background-color:#0169CA; color:white; text-align:center; border-radius: 5px;">Docx2Dashboard</h1>',
     unsafe_allow_html=True
 )
 def extract_folder_name(zip_file):
@@ -41,6 +44,7 @@ def extract_folder_name(zip_file):
     if os.path.exists(macosx_folder):
         shutil.rmtree(macosx_folder)
 
+@st.cache_data
 def data_extraction(folder):
     file_locations = get_file_locations(folder)
     num_files = len(file_locations)
@@ -94,6 +98,7 @@ def data_cleaning(combined_ouput_csv):
     df = df[df['Transaction_Amount'] != 0]
     df.drop(columns=['Date'], inplace=True)
     return df
+
 # def zeroshot_transaction(df):
 #     from transformers import pipeline
 #     classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
@@ -315,6 +320,32 @@ def display_overview(df):
     # st.plotly_chart(fig7, use_container_width=True)
 
 
+def preprocess_text(column):
+    nltk.download('punkt')
+    nltk.download('stopwords')
+    stop_words = set(stopwords.words('english'))
+    tokens = []
+    column = column.dropna()
+    for sent in column:  # Drop NaN rows
+        words = nltk.word_tokenize(sent.lower())
+        filtered_words = [word for word in words if word.isalnum() and word not in stop_words]
+        tokens.extend(filtered_words)
+    return tokens
+
+def get_frequent_words(column, n=10):
+    all_words = preprocess_text(column)
+    word_counts = Counter(all_words)
+    frequent_words = word_counts.most_common(n)
+    return frequent_words
+
+def interactive_transaction_analysis(df, column_name, n):
+    frequent_words = get_frequent_words(df[column_name], n)
+    words = [pair[0] for pair in frequent_words]
+    frequencies = [pair[1] for pair in frequent_words]
+    fig = go.Figure(go.Bar(x=words, y=frequencies, marker_color='skyblue'))
+    fig.update_layout(xaxis=dict(title='Words'), yaxis=dict(title='Frequency'), title=f'Top {n} Frequent Words', xaxis_tickangle=-45, height=400, width=600)
+    st.plotly_chart(fig)
+
 def get_unique_values(df):
     unique_values_by_column = {}
     for column in df.columns:
@@ -431,7 +462,7 @@ def ocr_result(pdf_files):
 
             # Generate a unique key based on PDF file name and page index for the data editor
             editor_key = f"{pdf_file}_{idx}_editor"
-            # Generate a unique key based on PDF file name and page index for the button
+            # Generate a unique key based on PDFc file name and page index for the button
             button_key = f"{pdf_file}_{idx}_button"
 
             # Display the data editor and get user input
@@ -441,9 +472,6 @@ def ocr_result(pdf_files):
             if st.button('Get results', key=button_key):
                 st.write(result)
 
-# st.subheader("Data Preprocessing")
-# folder_upload = st.file_uploader("Upload a zip file", type=["zip"])
-# old_upload = st.file_uploader("Upload a CSV file to update", type=["csv"])
 def process_data(folder_upload, old_upload, filename):
     if folder_upload is not None:
         if folder_upload.type == 'application/zip':
@@ -462,7 +490,7 @@ def process_data(folder_upload, old_upload, filename):
             st.error("Please upload a zip file.")
 
 def main():
-    st.subheader("Data Preprocessing")
+    st.subheader("💡Unlock insights by uploading your documents")
     folder_upload = st.file_uploader("Upload a zip file", type=["zip"], key="folder_upload")
     old_upload = st.file_uploader("Upload a CSV file to update", type=["csv"], key="old_uplad")
     file_name = st.text_input("Enter the file name for updated data:", value='Financial_Diaries.csv')
@@ -470,13 +498,18 @@ def main():
         final_output = process_data(folder_upload, old_upload, file_name)
         display_data_structure(final_output)
         display_overview(final_output)
+        column_name = st.selectbox(
+            'Choose between columns',
+            ('Transaction_Name', 'Transaction_Comment'))
+        # column_name = st.selectbox(
+        #     'Choose between columns',
+        #     ('Transaction_Category1', 'Transaction_Name', 'Transaction_Comment'))
+        n = st.sidebar.slider('Select number of top frequent words:', 1, 30, 10)
+        interactive_transaction_analysis(final_output, column_name=column_name, n=n)
 
     if st.button("Manual Update"):
         manual_update(old_upload)
 
-
-
-    # Call other functions similarly based on user interaction
 
 if __name__ == "__main__":
     main()
