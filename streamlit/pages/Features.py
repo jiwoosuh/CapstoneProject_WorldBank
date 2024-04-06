@@ -9,12 +9,17 @@ import plotly.graph_objects as go
 from wordcloud import WordCloud
 from plotly.subplots import make_subplots
 import csv
+import cv2
+from pdf2image import convert_from_path
+import easyocr
 import sys
 from pathlib import Path
+from pathlib import PosixPath
 st.set_option('deprecation.showPyplotGlobalUse', False)
 sys.path.append(Path(os.getcwd()).parent)
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
+from source_code.pdf2csv_easyOCR import ocr_result
 
 st.set_page_config(
     layout='wide',
@@ -38,11 +43,15 @@ def extract_folder_name(zip_file):
 
 def data_extraction(folder):
     file_locations = get_file_locations(folder)
+    num_files = len(file_locations)
     csv_file_header = ['FD_Name', 'State', 'Region', 'Member_Status', 'File_Name', 'Respondent_ID', 'Date', 'Week', 'Transaction_Nature', 'Transaction_Type', 'Transaction_Name', 'Transaction_Amount', 'Transaction_Comment']
-
+    print(num_files)
     combined_csv_data = []
-    for docx_file in file_locations:
-        st.write(f'Processing file: {docx_file}')
+    progress_bar = st.progress(0, text = 'Extracting Data...')
+    for i, docx_file in enumerate(file_locations):
+        progress = (i + 1) / num_files
+        progress_bar.progress(progress, text = 'Extracting Data...')
+        #st.write(f'Processing file: {docx_file}')
         csv_data = convert_table_to_csv_file(docx_file, csv_file_header)
         combined_csv_data.extend(csv_data)
 
@@ -85,10 +94,32 @@ def data_cleaning(combined_ouput_csv):
     df = df[df['Transaction_Amount'] != 0]
     df.drop(columns=['Date'], inplace=True)
     return df
+# def zeroshot_transaction(df):
+#     from transformers import pipeline
+#     classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+#     def classify_transaction(transaction_name):
+#         labels = [
+#             'Miscellaneous',
+#             'Woman Personal',
+#             'Children',
+#             'Investment',
+#             'Gift',
+#             'Household',
+#             'Health Care',
+#             'Business',
+#             'Agriculture'
+#         ]
+#         result = classifier(transaction_name, labels)
+#         return result['labels'][0]
+#
+#     df['Transaction_Category1'] = df['Transaction_Name'].apply(classify_transaction)
+#     # print(classified_df[['Transaction_Name', 'Transaction_Category1']].head(10))
+#     return df
 
 def data_update_and_save(old_data,new_data,file_name):
     old_data = pd.read_csv(old_data)
     updated_data = pd.concat([old_data,new_data])
+    updated_data = updated_data.drop_duplicates()
 
     updated_data.to_csv(file_name, index=False)
     st.success(f'Data is cleaned and saved as {file_name}')
@@ -98,69 +129,9 @@ def data_update_and_save(old_data,new_data,file_name):
         st.subheader("Processed Data")
         df = pd.read_csv(file_name)
         st.dataframe(df)
+        return df
 
-    def manual_update(old_data):
-        # st.header("Update Tabular Data Manually")
-        # Load old data
-        if old_data is not None:
-            df = pd.read_csv(old_data)
-            unique_values = get_unique_values(df)
-
-            # Create select boxes for input variables based on unique values
-            st.subheader("Enter Variable Values:")
-            fd_name = st.text_input("FD_Name:")
-            state = st.selectbox("State:", unique_values['State'])
-            region = st.selectbox("Region:", unique_values['Region'])
-            member_status = st.selectbox("Member_Status:", unique_values['Member_Status'])
-            file_name = st.text_input("File_Name:")
-            respondent_id = st.text_input("Respondent ID:")
-            date = st.text_input("Date(DD/MM/YYYY):")
-            week = st.number_input("Week:", min_value = 1,max_value=5)
-            transaction_nature = st.selectbox("Transaction_Nature:", unique_values['Transaction_Nature'])
-            transaction_type = st.selectbox("Transaction_Type:", unique_values['Transaction_Type'])
-            transaction_category = st.selectbox("Transaction_Category:", unique_values['Transaction_Category'])
-            category_name = st.selectbox("Category_Name:", unique_values['Category_Name'])
-            transaction_name = st.text_input("Transaction_Name:")
-            transaction_amount = st.number_input("Transaction_Amount:")
-            transaction_comment = st.text_input("Transaction_Comment:")
-            formatted_date = clean_date_format(date)
-
-            if st.button("Update Row"):
-                # Call functions to update tabular data
-                updated_row_data = [fd_name, state, region, member_status, file_name, respondent_id, date, week,
-                                    transaction_nature, transaction_type, transaction_category, category_name,
-                                    transaction_name, transaction_amount, transaction_comment,formatted_date]
-                # Update tabular data with the new row data
-                updated_data = update_tabular_data(df, updated_row_data)
-                st.success("Row Updated Successfully!")
-                st.dataframe(updated_data.tail())
-
-                updated_data_csv = updated_data.to_csv(index=False, encoding='utf-8')
-                # new_file_name = st.text_input("Type New File Name:")
-
-
-                st.download_button(
-                    label="Download data as CSV",
-                    data=updated_data_csv,
-                    file_name="Updated_data.csv",
-                    mime='text/csv',
-                )
-
-    def update_tabular_data(old_data, updated_row_data):
-        # if not old_data.endswith('.csv'):
-        #     raise ValueError("The provided old_data is not a CSV file.")
-        # old_data = pd.read_csv(old_data)
-        new_row = pd.DataFrame([updated_row_data], columns=old_data.columns)
-        updated_data = pd.concat([old_data, new_row], ignore_index=True)
-        # updated_data = old_data.append(new_row, ignore_index=True)
-        return updated_data
-
-
-
-
-    # Dataset Information
-    st.subheader("Data Structure")
-
+def display_data_structure(df):
     info_data = []
     for column in df.columns:
         data_type = df[column].dtype
@@ -177,9 +148,7 @@ def data_update_and_save(old_data,new_data,file_name):
         st.write(f"Number of Variables: {df.shape[1]}")
         st.dataframe(info_df)
 
-    # st.divider()
-
-    st.subheader("Overview")
+def display_overview(df):
     df['Formatted_Date'] = pd.to_datetime(df['Formatted_Date'])
     df['Year'] = df['Formatted_Date'].dt.year
 
@@ -227,8 +196,6 @@ def data_update_and_save(old_data,new_data,file_name):
         </div>
     </div>
     """, unsafe_allow_html=True)
-
-    # Plot 1
     wag_transaction_amount_log = np.log(df[df['Member_Status'] == 'WAG']['Transaction_Amount'])
     non_wag_transaction_amount_log = np.log(df[df['Member_Status'] == 'NON WAG']['Transaction_Amount'])
 
@@ -324,8 +291,8 @@ def data_update_and_save(old_data,new_data,file_name):
 
 
     # Plot 7
-    fig7 = px.bar(df, x='Week', y='Transaction_Amount', color='Transaction_Category1', barmode='group',
-                  title='Transaction Category by Week')
+    # fig7 = px.bar(df, x='Week', y='Transaction_Amount', color='Transaction_Category1', barmode='group',
+    #               title='Transaction Category by Week')
 
     col2, col3, col4 = st.columns(3)
     col1, col5 = st.columns([1, 2])
@@ -345,18 +312,171 @@ def data_update_and_save(old_data,new_data,file_name):
     with col5:
         st.plotly_chart(fig5, use_container_width=True)
 
-    st.plotly_chart(fig7, use_container_width=True)
+    # st.plotly_chart(fig7, use_container_width=True)
 
-st.subheader("Data Preprocessing")
-folder_upload = st.file_uploader("Upload a zip file", type=["zip"])
-old_upload = st.file_uploader("Upload a CSV file to update", type=["csv"])
-if folder_upload is not None:
-    if folder_upload.type == 'application/zip':
-        extract_folder_name(folder_upload)
-        folder = folder_upload.name[:-4]
-        combined_output = data_extraction(folder)
-        cleaned_data = data_cleaning(combined_output)
-        data_update_and_save(old_data = old_upload, new_data=cleaned_data, file_name='Financial_Diaries')
 
-    else:
-        st.error("Please upload a zip file.")
+def get_unique_values(df):
+    unique_values_by_column = {}
+    for column in df.columns:
+        unique_values_by_column[column] = df[column].unique()
+    return unique_values_by_column
+
+def manual_update(old_data):
+    # Update Tabular Data Manually
+    if old_data is not None:
+        df = pd.read_csv(old_data)
+        unique_values = get_unique_values(df)
+
+        # Create select boxes for input variables based on unique values
+        st.subheader("Enter Variable Values:")
+        fd_name = st.text_input("FD_Name:")
+        state = st.selectbox("State:", unique_values['State'])
+        region = st.selectbox("Region:", unique_values['Region'])
+        member_status = st.selectbox("Member_Status:", unique_values['Member_Status'])
+        file_name = st.text_input("File_Name:")
+        respondent_id = st.text_input("Respondent ID:")
+        date = st.text_input("Date(DD/MM/YYYY):")
+        week = st.number_input("Week:", min_value = 1,max_value=5)
+        transaction_nature = st.selectbox("Transaction_Nature:", unique_values['Transaction_Nature'])
+        transaction_type = st.selectbox("Transaction_Type:", unique_values['Transaction_Type'])
+        transaction_category = st.selectbox("Transaction_Category:", unique_values['Transaction_Category'])
+        category_name = st.selectbox("Category_Name:", unique_values['Category_Name'])
+        transaction_name = st.text_input("Transaction_Name:")
+        transaction_amount = st.number_input("Transaction_Amount:")
+        transaction_comment = st.text_input("Transaction_Comment:")
+        formatted_date = clean_date_format(date)
+
+        if st.button("Update Row"):
+            # Call functions to update tabular data
+            updated_row_data = [fd_name, state, region, member_status, file_name, respondent_id, date, week,
+                                transaction_nature, transaction_type, transaction_category, category_name,
+                                transaction_name, transaction_amount, transaction_comment,formatted_date]
+            # Update tabular data with the new row data
+            updated_data = update_tabular_data(df, updated_row_data)
+            st.success("Row Updated Successfully!")
+            st.dataframe(updated_data.tail())
+
+            updated_data_csv = updated_data.to_csv(index=False, encoding='utf-8')
+            st.download_button(
+                label="Download data as CSV",
+                data=updated_data_csv,
+                file_name="Updated_data.csv",
+                mime='text/csv',
+            )
+
+def update_tabular_data(old_data, updated_row_data):
+    new_row = pd.DataFrame([updated_row_data], columns=old_data.columns)
+    updated_data = pd.concat([old_data, new_row], ignore_index=True)
+    return updated_data
+
+def get_pdf_file_locations(folder):
+    pdf_file_locations = []
+    for root, dirs, files in os.walk(folder):
+        for file in files:
+            if file.endswith('.pdf'):  # Check if file ends with ".pdf"
+                pdf_file_locations.append(os.path.join(root, file))
+    return pdf_file_locations
+
+def ocr_result(pdf_files):
+    for pdf_file in pdf_files:
+        st.write(f"Processing PDF: {pdf_file}")
+        pages = convert_from_path(pdf_file)
+        reader = easyocr.Reader(['en'], gpu=True)
+
+        # Loop through each page
+        for idx, page in enumerate(pages):
+            # Convert PIL image to OpenCV format
+            image = cv2.cvtColor(np.array(page), cv2.COLOR_RGB2BGR)
+
+            # Sharpen the image
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            sharpen_kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+            sharpen = cv2.filter2D(gray, -1, sharpen_kernel)
+
+            # Thresholding
+            thresh = cv2.threshold(sharpen, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+
+            # Perform OCR
+            ocr_results = reader.readtext(thresh, detail=0)
+
+            # Display OCR results
+            st.image(image, caption=f"Page {idx + 1}", use_column_width=True)
+            st.write(f"Page {idx + 1} OCR Result:\n{ocr_results}\n")
+
+            # Define an empty DataFrame
+            df = pd.DataFrame(
+                columns=['FD_Name', 'State', 'Region', 'Member_Status', 'File_Name', 'Respondent_ID', 'Date', 'Week',
+                         'Transaction_Nature', 'Transaction_Type', 'Transaction_Category', 'Category_Name',
+                         'Transaction_Name', 'Transaction_Amount', 'Transaction_Comment', 'Formatted_Date'])
+
+            # Define column configurations
+            config = {
+                'FD_Name': st.column_config.TextColumn('FD Name'),
+                'State': st.column_config.TextColumn('State'),
+                'Region': st.column_config.TextColumn('Region'),
+                'Member_Status': st.column_config.TextColumn('Member Status'),
+                'File_Name': st.column_config.TextColumn('File Name'),
+                'Respondent_ID': st.column_config.TextColumn('Respondent ID'),
+                'Date': st.column_config.DateColumn('Date'),
+                'Week': st.column_config.NumberColumn('Week'),
+                'Transaction_Nature': st.column_config.TextColumn('Transaction Nature'),
+                'Transaction_Type': st.column_config.TextColumn('Transaction Type'),
+                'Transaction_Category': st.column_config.TextColumn('Transaction Category'),
+                'Category_Name': st.column_config.TextColumn('Category Name'),
+                'Transaction_Name': st.column_config.TextColumn('Transaction Name'),
+                'Transaction_Amount': st.column_config.NumberColumn('Transaction Amount'),
+                'Transaction_Comment': st.column_config.TextColumn('Transaction Comment'),
+                'Formatted_Date': st.column_config.TextColumn('Formatted Date')
+            }
+
+            # Generate a unique key based on PDF file name and page index for the data editor
+            editor_key = f"{pdf_file}_{idx}_editor"
+            # Generate a unique key based on PDF file name and page index for the button
+            button_key = f"{pdf_file}_{idx}_button"
+
+            # Display the data editor and get user input
+            result = st.data_editor(df, column_config=config, num_rows='dynamic', key=editor_key)
+
+            # Button to get the results
+            if st.button('Get results', key=button_key):
+                st.write(result)
+
+# st.subheader("Data Preprocessing")
+# folder_upload = st.file_uploader("Upload a zip file", type=["zip"])
+# old_upload = st.file_uploader("Upload a CSV file to update", type=["csv"])
+def process_data(folder_upload, old_upload, filename):
+    if folder_upload is not None:
+        if folder_upload.type == 'application/zip':
+            extract_folder_name(folder_upload)
+            folder = folder_upload.name[:-4]
+            combined_output = data_extraction(folder)
+            cleaned_data = data_cleaning(combined_output)
+            # classified_data = zeroshot_transaction(cleaned_data)
+            final_output = data_update_and_save(old_data=old_upload, new_data=cleaned_data, file_name=filename)
+            pdf_files = get_pdf_file_locations(folder)
+            if pdf_files:
+                st.info("PDF files found. Running OCR...")
+                ocr_result(pdf_files)
+            return final_output
+        else:
+            st.error("Please upload a zip file.")
+
+def main():
+    st.subheader("Data Preprocessing")
+    folder_upload = st.file_uploader("Upload a zip file", type=["zip"], key="folder_upload")
+    old_upload = st.file_uploader("Upload a CSV file to update", type=["csv"], key="old_uplad")
+    file_name = st.text_input("Enter the file name for updated data:", value='Financial_Diaries.csv')
+    if st.button("Docx2Dashboard"):
+        final_output = process_data(folder_upload, old_upload, file_name)
+        display_data_structure(final_output)
+        display_overview(final_output)
+
+    if st.button("Manual Update"):
+        manual_update(old_upload)
+
+
+
+    # Call other functions similarly based on user interaction
+
+if __name__ == "__main__":
+    main()
