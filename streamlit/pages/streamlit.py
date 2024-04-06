@@ -5,8 +5,8 @@ import sys
 from pathlib import Path
 import pandas as pd
 from pathlib import Path
-from streamlit.components.v1 import components
-st.set_option('deprecation.showPyplotGlobalUse', False)
+# from streamlit.components.v1 import components
+# st.set_option('deprecation.showPyplotGlobalUse', False)
 sys.path.append(Path(os.getcwd()).parent)
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 # from source_code.geo_viz import init_map, create_point_map, plot_from_df, load_df, load_map_region, load_map_state, main_region, main_state, plots

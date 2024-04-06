@@ -16,7 +16,11 @@ sys.path.append(Path(os.getcwd()).parent)
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
 
-st.set_page_config(layout='wide')
+st.set_page_config(
+    layout='wide',
+    page_title="Upload Data",
+    page_icon="🪄"
+)
 
 st.markdown(
     f'<h1 style="background-color:#378CE7; color:white; text-align:center; border-radius: 10px;">Docx2Dashboard</h1>',
@@ -38,7 +42,7 @@ def data_extraction(folder):
 
     combined_csv_data = []
     for docx_file in file_locations:
-        # st.write(f'Processing file: {docx_file}')
+        st.write(f'Processing file: {docx_file}')
         csv_data = convert_table_to_csv_file(docx_file, csv_file_header)
         combined_csv_data.extend(csv_data)
 
@@ -47,10 +51,12 @@ def data_extraction(folder):
         writer = csv.writer(csvfile)
         writer.writerow(csv_file_header)  # Write the header
         writer.writerows(combined_csv_data)  # Write the data
+    return combined_output_csv
 
+def data_cleaning(combined_ouput_csv):
     # Data cleaning
-    os.getcwd()
-    df = pd.read_csv('combined_output.csv')
+    # os.getcwd()
+    df = pd.read_csv(combined_ouput_csv)
 
     df['Formatted_Date'] = df['Date'].apply(clean_date_format)
     df['Transaction_Amount'] = df['Transaction_Amount'].apply(clean_transaction_amount)
@@ -78,16 +84,79 @@ def data_extraction(folder):
     # Remove 'zero Transaction_Amount' and 'Date' column
     df = df[df['Transaction_Amount'] != 0]
     df.drop(columns=['Date'], inplace=True)
+    return df
 
-    df.to_csv('Financial_Diaries.csv', index=False)
+def data_update_and_save(old_data,new_data,file_name):
+    old_data = pd.read_csv(old_data)
+    updated_data = pd.concat([old_data,new_data])
 
-    st.success('Data is cleaned and saved as \'Financial_Diaries.csv\'')
+    updated_data.to_csv(file_name, index=False)
+    st.success(f'Data is cleaned and saved as {file_name}')
 
     # Display processed data
-    if os.path.exists('Financial_Diaries_Modified.csv'):
+    if os.path.exists(file_name):
         st.subheader("Processed Data")
-        df = pd.read_csv('Financial_Diaries_Modified.csv')
+        df = pd.read_csv(file_name)
         st.dataframe(df)
+
+    def manual_update(old_data):
+        # st.header("Update Tabular Data Manually")
+        # Load old data
+        if old_data is not None:
+            df = pd.read_csv(old_data)
+            unique_values = get_unique_values(df)
+
+            # Create select boxes for input variables based on unique values
+            st.subheader("Enter Variable Values:")
+            fd_name = st.text_input("FD_Name:")
+            state = st.selectbox("State:", unique_values['State'])
+            region = st.selectbox("Region:", unique_values['Region'])
+            member_status = st.selectbox("Member_Status:", unique_values['Member_Status'])
+            file_name = st.text_input("File_Name:")
+            respondent_id = st.text_input("Respondent ID:")
+            date = st.text_input("Date(DD/MM/YYYY):")
+            week = st.number_input("Week:", min_value = 1,max_value=5)
+            transaction_nature = st.selectbox("Transaction_Nature:", unique_values['Transaction_Nature'])
+            transaction_type = st.selectbox("Transaction_Type:", unique_values['Transaction_Type'])
+            transaction_category = st.selectbox("Transaction_Category:", unique_values['Transaction_Category'])
+            category_name = st.selectbox("Category_Name:", unique_values['Category_Name'])
+            transaction_name = st.text_input("Transaction_Name:")
+            transaction_amount = st.number_input("Transaction_Amount:")
+            transaction_comment = st.text_input("Transaction_Comment:")
+            formatted_date = clean_date_format(date)
+
+            if st.button("Update Row"):
+                # Call functions to update tabular data
+                updated_row_data = [fd_name, state, region, member_status, file_name, respondent_id, date, week,
+                                    transaction_nature, transaction_type, transaction_category, category_name,
+                                    transaction_name, transaction_amount, transaction_comment,formatted_date]
+                # Update tabular data with the new row data
+                updated_data = update_tabular_data(df, updated_row_data)
+                st.success("Row Updated Successfully!")
+                st.dataframe(updated_data.tail())
+
+                updated_data_csv = updated_data.to_csv(index=False, encoding='utf-8')
+                # new_file_name = st.text_input("Type New File Name:")
+
+
+                st.download_button(
+                    label="Download data as CSV",
+                    data=updated_data_csv,
+                    file_name="Updated_data.csv",
+                    mime='text/csv',
+                )
+
+    def update_tabular_data(old_data, updated_row_data):
+        # if not old_data.endswith('.csv'):
+        #     raise ValueError("The provided old_data is not a CSV file.")
+        # old_data = pd.read_csv(old_data)
+        new_row = pd.DataFrame([updated_row_data], columns=old_data.columns)
+        updated_data = pd.concat([old_data, new_row], ignore_index=True)
+        # updated_data = old_data.append(new_row, ignore_index=True)
+        return updated_data
+
+
+
 
     # Dataset Information
     st.subheader("Data Structure")
@@ -280,10 +349,14 @@ def data_extraction(folder):
 
 st.subheader("Data Preprocessing")
 folder_upload = st.file_uploader("Upload a zip file", type=["zip"])
+old_upload = st.file_uploader("Upload a CSV file to update", type=["csv"])
 if folder_upload is not None:
     if folder_upload.type == 'application/zip':
         extract_folder_name(folder_upload)
         folder = folder_upload.name[:-4]
-        data_extraction(folder)
+        combined_output = data_extraction(folder)
+        cleaned_data = data_cleaning(combined_output)
+        data_update_and_save(old_data = old_upload, new_data=cleaned_data, file_name='Financial_Diaries')
+
     else:
         st.error("Please upload a zip file.")
