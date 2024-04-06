@@ -237,7 +237,7 @@ def methodology():
 #                 'Region': st.column_config.TextColumn('Region'),
 #                 'Member_Status': st.column_config.TextColumn('Member Status'),
 #                 'File_Name': st.column_config.TextColumn('File Name'),
-#                 'Respondent_ID': st.column_config.TextColumn('Respondent ID'),
+#                 'Respondent_ID': st.column_config.TextColumn('Respondent_ID'),
 #                 'Date': st.column_config.DateColumn('Date'),
 #                 'Week': st.column_config.NumberColumn('Week'),
 #                 'Transaction_Nature': st.column_config.TextColumn('Transaction Nature'),
@@ -316,7 +316,7 @@ def ocr_result():
                 'Region': st.column_config.TextColumn('Region'),
                 'Member_Status': st.column_config.TextColumn('Member Status'),
                 'File_Name': st.column_config.TextColumn('File Name'),
-                'Respondent_ID': st.column_config.TextColumn('Respondent ID'),
+                'Respondent_ID': st.column_config.TextColumn('Respondent_ID'),
                 'Date': st.column_config.DateColumn('Date'),
                 'Week': st.column_config.NumberColumn('Week'),
                 'Transaction_Nature': st.column_config.TextColumn('Transaction Nature'),
@@ -358,7 +358,7 @@ def manual_update():
             region = st.selectbox("Region:", unique_values['Region'])
             member_status = st.selectbox("Member_Status:", unique_values['Member_Status'])
             file_name = st.text_input("File_Name:")
-            respondent_id = st.text_input("Respondent ID:")
+            respondent_id = st.text_input("Respondent_ID:")
             date = st.text_input("Date(DD/MM/YYYY):")
             week = st.number_input("Week:", min_value = 1,max_value=5)
             transaction_nature = st.selectbox("Transaction_Nature:", unique_values['Transaction_Nature'])
@@ -511,9 +511,9 @@ def data_preprocessing():
         df['Formatted_Date'] = pd.to_datetime(df['Formatted_Date'])
         df['Year'] = df['Formatted_Date'].dt.year
 
-        count_r = df['Respondent ID'].nunique()
-        count_wag = df[df["Member_Status"] == "WAG"]['Respondent ID'].nunique()
-        count_nwag = df[df["Member_Status"] == "NON WAG"]['Respondent ID'].nunique()
+        count_r = df['Respondent_ID'].nunique()
+        count_wag = df[df["Member_Status"] == "WAG"]['Respondent_ID'].nunique()
+        count_nwag = df[df["Member_Status"] == "NON WAG"]['Respondent_ID'].nunique()
         total_income = df[df["Transaction_Type"] == "Income"]
         income_per = (total_income["Transaction_Amount"].sum()/df["Transaction_Amount"].sum())*100
         total_expence = df[df["Transaction_Type"] == "Expenditure"]
