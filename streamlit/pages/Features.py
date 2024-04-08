@@ -17,9 +17,10 @@ from pathlib import Path
 import nltk
 from nltk.corpus import stopwords
 from collections import Counter
-from pathlib import PosixPath
+from transformers import pipeline
 st.set_option('deprecation.showPyplotGlobalUse', False)
 sys.path.append(Path(os.getcwd()).parent)
+
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
 from source_code.pdf2csv_easyOCR import ocr_result
@@ -99,27 +100,27 @@ def data_cleaning(combined_ouput_csv):
     df.drop(columns=['Date'], inplace=True)
     return df
 
-# def zeroshot_transaction(df):
-#     from transformers import pipeline
-#     classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
-#     def classify_transaction(transaction_name):
-#         labels = [
-#             'Miscellaneous',
-#             'Woman Personal',
-#             'Children',
-#             'Investment',
-#             'Gift',
-#             'Household',
-#             'Health Care',
-#             'Business',
-#             'Agriculture'
-#         ]
-#         result = classifier(transaction_name, labels)
-#         return result['labels'][0]
-#
-#     df['Transaction_Category1'] = df['Transaction_Name'].apply(classify_transaction)
-#     # print(classified_df[['Transaction_Name', 'Transaction_Category1']].head(10))
-#     return df
+def zeroshot_transaction(df):
+
+    classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+    def classify_transaction(df_col):
+        labels = [
+            'Miscellaneous',
+            'Woman Personal',
+            'Children',
+            'Investment',
+            'Gift',
+            'Household',
+            'Health Care',
+            'Business',
+            'Agriculture'
+        ]
+        result = classifier(df_col, labels)
+        return result['labels'][0]
+
+    df['Transaction_Category1'] = classify_transaction(df['Transaction_Name'])
+    # print(classified_df[['Transaction_Name', 'Transaction_Category1']].head(10))
+    return df
 
 def data_update_and_save(old_data,new_data,file_name):
     old_data = pd.read_csv(old_data)
@@ -479,8 +480,8 @@ def process_data(folder_upload, old_upload, filename):
             folder = folder_upload.name[:-4]
             combined_output = data_extraction(folder)
             cleaned_data = data_cleaning(combined_output)
-            # classified_data = zeroshot_transaction(cleaned_data)
-            final_output = data_update_and_save(old_data=old_upload, new_data=cleaned_data, file_name=filename)
+            classified_data = zeroshot_transaction(cleaned_data)
+            final_output = data_update_and_save(old_data=old_upload, new_data=classified_data, file_name=filename)
             pdf_files = get_pdf_file_locations(folder)
             if pdf_files:
                 st.info("PDF files found. Running OCR...")
