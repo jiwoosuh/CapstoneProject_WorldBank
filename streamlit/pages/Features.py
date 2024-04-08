@@ -9,9 +9,11 @@ import plotly.graph_objects as go
 from wordcloud import WordCloud
 from plotly.subplots import make_subplots
 import csv
+from datasets import Dataset
 import cv2
 from pdf2image import convert_from_path
 import easyocr
+import torch
 import sys
 from pathlib import Path
 import nltk
@@ -100,10 +102,29 @@ def data_cleaning(combined_ouput_csv):
     df.drop(columns=['Date'], inplace=True)
     return df
 
-def zeroshot_transaction(df):
 
-    classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
-    def classify_transaction(df_col):
+def add_column_if_missing(df, column_name, after_column):
+    """
+    Add a column to a DataFrame if it doesn't already exist, positioning it after a specified column.
+
+    Parameters:
+        df (DataFrame): The DataFrame to check and potentially modify.
+        column_name (str): The name of the column to be added if missing.
+        after_column (str): The name of the column after which the new column should be inserted.
+
+    Returns:
+        DataFrame: The modified DataFrame.
+    """
+    if column_name not in df.columns:
+        idx = df.columns.get_loc(after_column) + 1
+        df.insert(idx, column_name, None)
+    return df
+
+def zeroshot_transaction(df):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(device)
+    classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli", device=device)
+    def classify_transaction(transaction_name):
         labels = [
             'Miscellaneous',
             'Woman Personal',
@@ -115,10 +136,11 @@ def zeroshot_transaction(df):
             'Business',
             'Agriculture'
         ]
-        result = classifier(df_col, labels)
+        result = classifier(transaction_name, labels)
         return result['labels'][0]
-
-    df['Transaction_Category1'] = classify_transaction(df['Transaction_Name'])
+    df = add_column_if_missing(df, 'Transaction_Category1', 'Transaction_Name')
+    # df['Transaction_Category1'] = classify_transaction(df['Transaction_Name'])
+    df['Transaction_Category1'] = df['Transaction_Name'].apply(classify_transaction)
     # print(classified_df[['Transaction_Name', 'Transaction_Category1']].head(10))
     return df
 
@@ -297,8 +319,8 @@ def display_overview(df):
 
 
     # Plot 7
-    # fig7 = px.bar(df, x='Week', y='Transaction_Amount', color='Transaction_Category1', barmode='group',
-    #               title='Transaction Category by Week')
+    fig7 = px.bar(df, x='Week', y='Transaction_Amount', color='Transaction_Category1', barmode='group',
+                  title='Transaction Category by Week')
 
     col2, col3, col4 = st.columns(3)
     col1, col5 = st.columns([1, 2])
@@ -318,7 +340,7 @@ def display_overview(df):
     with col5:
         st.plotly_chart(fig5, use_container_width=True)
 
-    # st.plotly_chart(fig7, use_container_width=True)
+    st.plotly_chart(fig7, use_container_width=True)
 
 
 def preprocess_text(column):
