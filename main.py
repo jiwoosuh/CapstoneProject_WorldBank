@@ -25,7 +25,7 @@ print(f'Combined data saved to {combined_output_csv}')
 
 
 # Data cleaning
-from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
+from source_code.data_cleaning import clean_date_format, clean_mem_status, clean_transaction_amount
 
 os.getcwd()
 df = pd.read_csv('combined_output.csv')
@@ -40,4 +40,4 @@ df['Transaction_Name'] = df['Transaction_Name'].str.replace('₦', '')
 df['Region'] = df['Region'].replace('ijebu ne', 'ijebu north east')
 df['Region'] = df['Region'].replace('maiyami', 'maiyama')
 
-df.to_csv('Financial_Diaries.csv', index=False)
+df.to_csv('Financial_Diaries_new.csv', index=False)

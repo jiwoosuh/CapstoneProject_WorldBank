@@ -45,6 +45,35 @@ def fix_year_format(date_str):
         # Handle the case where the date string is not in the expected format
         return date_str
 
+# def clean_date_format(date_str):
+#     def fix_year_format(date_str):
+#         try:
+#             # Parse the date using the specified format
+#             formatted_date = datetime.strptime(date_str, '%d/%m/%y').strftime('%m/%d/%Y')
+#             # Format the date as mm/dd/yyyy
+#             return formatted_date
+#         except ValueError:
+#             # Handle the case where the date string is not in the expected format
+#             return date_str
+#
+#     date_str = re.sub(r'\n[^\d]*', '', date_str)
+#     match = re.match(r'(\d{1,2})(?:st|nd|rd|th|-|)? (\w+) (\d+)', date_str, re.IGNORECASE)
+#
+#     if match:
+#         day, month, year = match.groups()
+#
+#         if month.isnumeric():
+#             month_number = int(month)
+#         else:
+#             # convert month to numeric
+#             month_number = datetime.strptime(month, '%B').month
+#
+#         formatted_date = f'{month_number:02d}/{day}/{year}'
+#         return fix_year_format(formatted_date)
+#     else:
+#         date_str = re.sub(r'(\d{1,2})[^\d]*(\d{1,2})[^\d]*(\d{2}|\d{4})[^\d]*', r'\1/\2/\3', date_str)
+#         return fix_year_format(date_str)
+
 # Clean member status into only two (WAG/NON WAG)
 def clean_mem_status(mem_status):
     if 'NON WAG' in mem_status.upper():
