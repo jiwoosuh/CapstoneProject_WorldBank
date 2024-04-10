@@ -47,11 +47,11 @@ def extract_folder_name(zip_file):
     if os.path.exists(macosx_folder):
         shutil.rmtree(macosx_folder)
 
-@st.cache_data
+# @st.cache_data
 def data_extraction(folder):
     file_locations = get_file_locations(folder)
     num_files = len(file_locations)
-    csv_file_header = ['FD_Name', 'State', 'Region', 'Member_Status', 'File_Name', 'Respondent_ID', 'Date', 'Week', 'Transaction_Nature', 'Transaction_Type', 'Transaction_Name', 'Transaction_Amount', 'Transaction_Comment']
+    csv_file_header = ['FD_Name', 'State', 'Region', 'Member_Status', 'File_Name', 'Respondent ID', 'Date', 'Week', 'Transaction_Nature', 'Transaction_Type', 'Transaction_Name', 'Transaction_Amount', 'Transaction_Comment']
     print(num_files)
     combined_csv_data = []
     progress_bar = st.progress(0, text = 'Extracting Data...')
@@ -95,11 +95,11 @@ def data_cleaning(combined_ouput_csv):
     df['Week'] = df['Week'].astype('category')
     df['Transaction_Nature'] = df['Transaction_Nature'].astype('category')
     df['Transaction_Type'] = df['Transaction_Type'].astype('category')
-    df['Formatted_Date'] = pd.to_datetime(df['Formatted_Date'], format='%d/%m/%Y', errors='coerce')
+    df['Formatted_Date'] = pd.to_datetime(df['Formatted_Date'], format='%m/%d/%Y', errors='coerce')
 
     # Remove 'zero Transaction_Amount' and 'Date' column
     df = df[df['Transaction_Amount'] != 0]
-    df.drop(columns=['Date'], inplace=True)
+    # df.drop(columns=['Date'], inplace=True)
     return df
 
 
