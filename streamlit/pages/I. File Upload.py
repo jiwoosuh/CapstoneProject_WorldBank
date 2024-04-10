@@ -349,7 +349,7 @@ def data_update_and_save(old_data,new_data,file_name):
 
 st.subheader("Data Preprocessing")
 folder_upload = st.file_uploader("Upload a zip file", type=["zip"])
-old_upload = st.file_uploader("Upload a CSV file to update", type=["csv"])
+# old_upload = st.file_uploader("Upload a CSV file to update", type=["csv"])
 if folder_upload is not None:
     if folder_upload.type == 'application/zip':
         extract_folder_name(folder_upload)
