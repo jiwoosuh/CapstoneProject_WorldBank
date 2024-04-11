@@ -316,13 +316,81 @@ def display_overview(df):
                        yaxis_visible=False)
 
 
-    # Plot 7
-    fig7 = px.bar(df, x='Week', y='Transaction_Amount', color='Transaction_Category1', barmode='group',
+    # Plot 6
+    fig6 = px.bar(df, x='Week', y='Transaction_Amount', color='Transaction_Category1', barmode='group',
                   title='Transaction Category by Week')
 
+    # Plot 7 Create a bar chart for FD_Name counts
+    fd_name_counts = df['FD_Name'].value_counts().reset_index()
+    fd_name_counts.columns = ['FD_Name', 'count']
+    fig7 = px.bar(fd_name_counts, y='FD_Name', x='count', orientation='h', title='Name of Financial Diaries Count')
+    
+    
+    # Plot 8 Create a stacked bar chart for Transaction_Type by Transaction_Category1
+    transaction_type_category_counts = df.groupby(['Transaction_Category1', 'Transaction_Type']).size().unstack().fillna(0)
+    fig8 = go.Figure()
+    for transaction_type in transaction_type_category_counts.columns:
+        fig8.add_trace(go.Bar(
+            x=transaction_type_category_counts.index,
+            y=transaction_type_category_counts[transaction_type],
+            name=transaction_type
+        ))
+    fig8.update_layout(barmode='stack', title='Transaction Type by Category')
+
+    #Plot 9 State vs Region, counts
+    # Create the data for the stacked bar chart
+    grouped = df.groupby(['State', 'Region']).size().reset_index(name='Counts')
+    pivot_df = grouped.pivot(index='State', columns='Region', values='Counts').fillna(0)
+
+    # Create a Plotly Figure
+    fig9 = go.Figure()
+
+    # Add traces for each region
+    for region in pivot_df.columns:
+        fig9.add_trace(go.Bar(
+            x=pivot_df.index,
+            y=pivot_df[region],
+            name=region
+        ))
+
+    # Update layout for stacked bar chart
+    fig9.update_layout(
+        barmode='stack',  # This mode stacks bars on top of one another for each x-value
+        title='Count of Unique Regions within Each State',
+        xaxis_title="State",
+        yaxis_title="Counts",
+        legend_title="Region"
+    )
+
+    #customizing the x-axis to show all state names clearly
+    fig9.update_xaxes(tickangle=-45, tickmode='array', tickvals=pivot_df.index, ticktext=pivot_df.index)
+
+    
+    
+
+# Fig1- histogram 
+# Fig2- type, nature, amount
+# Fig3-week,amount type
+# Fig4- year, amount, income, expenditure
+# Fig5- word cloud
+# Fig6- week, category
+
+# Fig7- fd name count
+# Fig8- type, category
+#Fig9- State, region
+
+    # col2, col3, col4 = st.columns(3)
+    # col1, col5 = st.columns([1, 2])
+    # col6, col7, col8 = st.columns(3)
+    # col9, col10 = st.columns([1, 1])
+
     col2, col3, col4 = st.columns(3)
-    col1, col5 = st.columns([1, 2])
-    col6, col7 = st.columns([1, 1])
+    col1, col7, col8 = st.columns(3)
+    col5 = st.columns(1)
+    col6 = st.columns(1)
+    col9 = st.columns(1)
+
+
 
 
     with col1:
@@ -337,14 +405,22 @@ def display_overview(df):
     with col4:
         st.plotly_chart(fig4, use_container_width=True)
 
-    with col5:
+    with col5[0]:
+        st.plotly_chart(fig5, use_container_width=True)
+    
+    with col6[0]:
+        st.plotly_chart(fig6, use_container_width=True)
+    
+    with col7:
         st.plotly_chart(fig7, use_container_width=True)
 
-    with col6:
-        st.plotly_chart(fig5, use_container_width=True)
+    with col8:
+        st.plotly_chart(fig8, use_container_width=True)
+    
+    with col9[0]:
+        st.plotly_chart(fig9, use_container_width=True)
 
-    with col7:
-        st.plotly_chart(fig5, use_container_width=True)
+    
 
 
 
