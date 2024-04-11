@@ -338,32 +338,49 @@ def display_overview(df):
     fig8.update_layout(barmode='stack', title='Transaction Type by Category')
 
     #Plot 9 State vs Region, counts
-    # Create the data for the stacked bar chart
     grouped = df.groupby(['State', 'Region']).size().reset_index(name='Counts')
     pivot_df = grouped.pivot(index='State', columns='Region', values='Counts').fillna(0)
 
-    # Create a Plotly Figure
     fig9 = go.Figure()
 
-    # Add traces for each region
-    for region in pivot_df.columns:
+    colors = px.colors.qualitative.Plotly  # or any other color sequence
+
+    # Create a stacked bar chart
+    for i, region in enumerate(pivot_df.columns):
         fig9.add_trace(go.Bar(
             x=pivot_df.index,
             y=pivot_df[region],
-            name=region
+            name=region,
+            marker_color=colors[i % len(colors)]  # cycle through colors
         ))
 
-    # Update layout for stacked bar chart
+    # Customizing the layout of the chart
     fig9.update_layout(
-        barmode='stack',  # This mode stacks bars on top of one another for each x-value
+        barmode='stack',
         title='Count of Unique Regions within Each State',
-        xaxis_title="State",
-        yaxis_title="Counts",
-        legend_title="Region"
+        xaxis=dict(title='State'),
+        yaxis=dict(title='Count'),
+        showlegend=False  # hide the legend
     )
 
-    #customizing the x-axis to show all state names clearly
-    fig9.update_xaxes(tickangle=-45, tickmode='array', tickvals=pivot_df.index, ticktext=pivot_df.index)
+    # Adding text labels for each region in the bar
+    for i, state in enumerate(pivot_df.index):
+        cum_height = 0
+        for j, region in enumerate(pivot_df.columns):
+            count = pivot_df.loc[state, region]
+            if count > 0:  # Only add text labels if the count is non-zero
+                cum_height += count
+                fig9.add_annotation(
+                    x=state,
+                    y=cum_height - (count / 2),  # adjust text position to be in the middle of the bar segment
+                    text=str(region),
+                    showarrow=False,
+                    font=dict(
+                        size=10,
+                        color='white'
+                    ),
+                    xanchor='center'
+                )
 
     
     
