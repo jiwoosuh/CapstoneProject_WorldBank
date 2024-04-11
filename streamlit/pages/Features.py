@@ -532,14 +532,24 @@ st.markdown(
 from utils import *
 
 def main():
-    st.subheader("💡Unlock insights by uploading your documents")
-    folder_upload = st.file_uploader("Upload a zip file", type=["zip"], key="folder_upload")
-    old_upload = 'Financial_Diaries_final.csv'
+    st.write("💡Unlock insights by uploading your documents")
+    st.subheader('1. Choose an upload type')
+    upload_file = st.checkbox("Upload your ZIP folder of Word files or PDF file")
+    update_manually = st.checkbox("Manual Update")
+    if upload_file:
+        folder_upload = st.file_uploader("Upload a zip file only", type=["zip"], key="folder_upload")
+        old_upload = 'Financial_Diaries_final.csv'
+
+    if update_manually:
+        manual_update(old_upload)
+
+    st.subheader('2. Check the box to merge the new document to your previous CSV file of Financial Diaries')
     use_own_csv = st.checkbox("Update your own CSV file")
     if use_own_csv:
-        old_upload = st.file_uploader("Upload your CSV file", type=["csv"], key="old_upload")
-    file_name = st.text_input("Enter the file name for updated data:", value='Financial_Diaries_updated.csv')
-    if st.button("Docx2Dashboard"):
+        old_upload = st.file_uploader("Upload your previous CSV file", type=["csv"], key="old_upload")
+    st.subheader('3. Enter the file name for the new CSV file')
+    file_name = st.text_input("The new file name:", value='Financial_Diaries_updated.csv')
+    if st.button("Submit"):
         final_output = process_data(folder_upload, old_upload, file_name)
         display_data_structure(final_output)
         display_overview(final_output)
@@ -552,9 +562,6 @@ def main():
         placeholder = st.empty()
         fig = interactive_transaction_analysis(final_output, column_name, n)
         placeholder.plotly_chart(fig)
-
-    if st.button("Manual Update"):
-        manual_update(old_upload)
 
 
 if __name__ == "__main__":

@@ -15,9 +15,10 @@ st.markdown(
 )
 
 def main():
-    st.subheader("💡Unlock insights with our Visualization Dashboard")
+    st.write("💡Unlock insights with our Visualization Dashboard")
     old_upload = 'Financial_Diaries_final.csv'
     df = pd.read_csv(old_upload)
+    st.subheader('Data Structure')
     display_data_structure(df)
     display_overview(df)
     column_name = st.selectbox(

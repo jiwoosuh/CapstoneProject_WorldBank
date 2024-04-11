@@ -25,7 +25,7 @@ sys.path.append(Path(os.getcwd()).parent)
 
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
-from source_code.pdf2csv_easyOCR import ocr_result
+# from source_code.pdf2csv_easyOCR import ocr_result
 def extract_folder_name(zip_file):
     extract_path = os.getcwd()
 
@@ -168,8 +168,8 @@ def display_data_structure(df):
     info_df = pd.DataFrame(info_data)
 
     with st.expander("Expand to view"):
-        st.write(f"Number of Transactions: {df.shape[0]}")
-        st.write(f"Number of Variables: {df.shape[1]}")
+        st.write(f"**Number of Transactions: {df.shape[0]}**")
+        st.write(f"**Number of Variables: {df.shape[1]}**")
         st.dataframe(info_df)
 
 def display_overview(df):
@@ -197,7 +197,7 @@ def display_overview(df):
                 <div style='display: flex; align-items: center;'>
                     <div style='margin: 15px;'>
                         <p style='margin-bottom: 10px; font-weight: bold; font-size: 20px;'>Respondent</p>
-                        <div style='display: flex; justify-content: space-between; width: 500px; height:100px; background-color: white; padding: 20px; border-radius: 10px;'>
+                        <div style='display: flex; justify-content: space-between; width: 340px; height:100px; background-color: white; padding: 20px; border-radius: 10px;'>
                             <div style='margin: 0 5% 0 10%;'>Total<br>{count_r}</div>
                             <div style='margin: 0 5% 0 5%;'>WAG<br>{count_wag}</div>
                             <div style='margin: 0 10% 0 5%;'>NWAG<br>{count_nwag}</div>
@@ -205,14 +205,14 @@ def display_overview(df):
                     </div>
                     <div style='margin: 15px;'>
                         <p style='margin-bottom: 10px;font-weight: bold; font-size: 20px;'>Transaction Type</p>
-                        <div style='display: flex; justify-content: space-between; width: 340px; height:100px; background-color: white; padding: 20px; border-radius: 10px;'>
+                        <div style='display: flex; justify-content: space-between; width: 290px; height:100px; background-color: white; padding: 20px; border-radius: 10px;'>
                             <div style='margin: 0 3% 0 10%;'>Income<br>{income_per.round(1)}%</div>
                             <div style='margin: 0 8% 0 3%;'>Expenditure<br>{expence_per.round(1)}%</div>
                         </div>
                     </div>
                     <div style='margin: 10px;'>
                         <p style='margin-bottom: 10px;font-weight: bold; font-size: 20px;'>Transaction Nature</p>
-                        <div style='display: flex; justify-content: space-between; width: 340px; height:100px; background-color: white; padding: 20px; border-radius: 10px;'>
+                        <div style='display: flex; justify-content: space-between; width: 290px; height:100px; background-color: white; padding: 20px; border-radius: 10px;'>
                             <div style='margin: 0 3% 0 10%;'>Fixed<br>{fixed_per.round(1)}%</div>
                             <div style='margin: 0 8% 0 3%;'>Variable<br>{var_per.round(1)}%</div>
                         </div>
@@ -322,6 +322,8 @@ def display_overview(df):
 
     col2, col3, col4 = st.columns(3)
     col1, col5 = st.columns([1, 2])
+    col6, col7 = st.columns([1, 1])
+
 
     with col1:
         st.plotly_chart(fig1, use_container_width=True)
@@ -336,9 +338,14 @@ def display_overview(df):
         st.plotly_chart(fig4, use_container_width=True)
 
     with col5:
+        st.plotly_chart(fig7, use_container_width=True)
+
+    with col6:
         st.plotly_chart(fig5, use_container_width=True)
 
-    st.plotly_chart(fig7, use_container_width=True)
+    with col7:
+        st.plotly_chart(fig5, use_container_width=True)
+
 
 
 def preprocess_text(column):
