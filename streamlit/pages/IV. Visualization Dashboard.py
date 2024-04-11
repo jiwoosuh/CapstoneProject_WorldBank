@@ -32,29 +32,29 @@ axes = axes.flatten()
 # Count for Member Status for the pie chart
 member_status_counts = df['Member_Status'].value_counts()
 
-# 1. Bar chart for FD_Name counts
+# 1. Bar chart for FD_Name counts(***)
 sns.countplot(y='FD_Name', data=df, ax=axes[0], palette=darker_blue_palette)
 axes[0].set_title('FD_Name Count')
 
-# 2. Pie chart for Member Status distribution with shades of blue
-pie_chart_palette = sns.light_palette("skyblue", reverse=False, n_colors=len(member_status_counts))
-axes[1].pie(
-    member_status_counts, 
-    labels=member_status_counts.index, 
-    autopct='%1.1f%%', 
-    colors=pie_chart_palette  # Use the shades of blue here
-)
-axes[1].set_title('Member Status Distribution')
-# 3. Histogram for Transaction Amounts with zoom into the first few bars
-sns.histplot(df['Transaction_Amount'], bins=30, kde=True, ax=axes[2], color=darker_blue_palette[4])
-axes[2].set_title('Transaction Amount Distribution')
-axes[2].set_xlim(0, df['Transaction_Amount'].quantile(0.95))  # Zoom into 95% quantile
+# # 2. Pie chart for Member Status distribution with shades of blue
+# pie_chart_palette = sns.light_palette("skyblue", reverse=False, n_colors=len(member_status_counts))
+# axes[1].pie(
+#     member_status_counts, 
+#     labels=member_status_counts.index, 
+#     autopct='%1.1f%%', 
+#     colors=pie_chart_palette  # Use the shades of blue here
+# )
+# axes[1].set_title('Member Status Distribution')
+# # 3. Histogram for Transaction Amounts with zoom into the first few bars
+# sns.histplot(df['Transaction_Amount'], bins=30, kde=True, ax=axes[2], color=darker_blue_palette[4])
+# axes[2].set_title('Transaction Amount Distribution')
+# axes[2].set_xlim(0, df['Transaction_Amount'].quantile(0.95))  # Zoom into 95% quantile
 
-# 4. Bar chart for Transaction Nature counts
+# 4. Bar chart for Transaction Nature counts(***)
 sns.countplot(x='Transaction_Nature', data=df, ax=axes[3], palette=darker_blue_palette)
 axes[3].set_title('Transaction Nature Count')
 
-# 5. Stacked bar chart for Transaction_Type by Transaction_Category1 with adjusted colors
+# 5. Stacked bar chart for Transaction_Type by Transaction_Category1 with adjusted colors(***)
 transaction_type_category_counts = df.groupby(['Transaction_Category1', 'Transaction_Type']).size().unstack().fillna(0)
 transaction_type_category_counts.plot(kind='bar', stacked=True, colormap=sns.light_palette("navy", as_cmap=True), ax=axes[4])
 axes[4].set_title('Transaction Type by Transaction Category1')
