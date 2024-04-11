@@ -7,7 +7,7 @@ import easyocr
 
 def ocr_result(pdf_path):
     pages = convert_from_path(pdf_path)
-    reader = easyocr.Reader(['en'], gpu=False)
+    reader = easyocr.Reader(['en'], gpu=True)
 
     # Loop through each page
     for idx, page in enumerate(pages):
