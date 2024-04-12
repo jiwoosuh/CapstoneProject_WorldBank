@@ -15,21 +15,21 @@ st.markdown(
 )
 
 def main():
-    st.write("💡Unlock insights with our Visualization Dashboard")
+    st.subheader("💡Unlock insights with our Visualization Dashboard")
     old_upload = 'Financial_Diaries_final.csv'
     df = pd.read_csv(old_upload)
     st.subheader('Data Structure')
     display_data_structure(df)
     display_overview(df)
-    column_name = st.selectbox(
-        'Choose between columns',
-        ('Transaction_Name', 'Transaction_Comment'))
-    n = st.sidebar.slider('Select number of top frequent words:', 1, 30, 10)
-
-    # Placeholder for the visualization
-    placeholder = st.empty()
-    fig = interactive_transaction_analysis(df, column_name, n)
-    placeholder.plotly_chart(fig)
+    # column_name = st.selectbox(
+    #     'Choose between columns',
+    #     ('Transaction_Name', 'Transaction_Comment'))
+    # n = st.sidebar.slider('Select number of top frequent words:', 1, 30, 10)
+    #
+    # # Placeholder for the visualization
+    # placeholder = st.empty()
+    # fig = interactive_transaction_analysis(df, column_name, n)
+    # placeholder.plotly_chart(fig)
 
 
 if __name__ == "__main__":
