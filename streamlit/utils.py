@@ -167,10 +167,10 @@ def display_data_structure(df):
                           "Unique Values": ", ".join(map(str, unique_values))})
     info_df = pd.DataFrame(info_data)
 
-    with st.expander("Expand to view"):
-        st.write(f"**Number of Transactions: {df.shape[0]}**")
-        st.write(f"**Number of Variables: {df.shape[1]}**")
-        st.dataframe(info_df)
+    # with st.expander("Expand to view"):
+    st.write(f"**Number of Transactions: {df.shape[0]}**")
+    st.write(f"**Number of Variables: {df.shape[1]}**")
+    st.dataframe(info_df)
 
 def display_overview(df):
     # df['Formatted_Date'] = pd.to_datetime(df['Formatted_Date'])
@@ -305,6 +305,8 @@ def display_overview(df):
     transaction_names_str = ' '.join([' '.join(words) for words in transaction_names])
 
     # Generate Word Cloud
+    # wordcloud = WordCloud(background_color='white', colormap='Blues_r', height=600, width=1850,
+    #                       min_font_size=10).generate(transaction_names_str)
     wordcloud = WordCloud(background_color='white', colormap='Blues_r', height=600, width=1850,
                           min_font_size=10).generate(transaction_names_str)
 
@@ -357,7 +359,7 @@ def display_overview(df):
     # Customizing the layout of the chart
     fig9.update_layout(
         barmode='stack',
-        title='Count of Unique Regions within Each State',
+        title='Documents Count by Regions within Each State',
         xaxis=dict(title='State'),
         yaxis=dict(title='Count'),
         showlegend=False  # hide the legend
@@ -394,21 +396,31 @@ def display_overview(df):
 
 # Fig7- fd name count
 # Fig8- type, category
-#Fig9- State, region
+# Fig9- State, region
+# Fig10 - interactive transaction word freq
+# Fig11 - interactive transaction amount for category
+
 
     # col2, col3, col4 = st.columns(3)
     # col1, col5 = st.columns([1, 2])
     # col6, col7, col8 = st.columns(3)
     # col9, col10 = st.columns([1, 1])
-
+    col9, col11 = st.columns([1,2])
     col2, col3, col4 = st.columns(3)
     col1, col7, col8 = st.columns(3)
-    col5 = st.columns(1)
+    # col5 = st.columns(1)
+    # col10 = st.columns(1)
+    col10, col5 = st.columns([1,2])
     col6 = st.columns(1)
-    col9 = st.columns(1)
 
+    # col9 = st.columns(1)
+    # col11 = st.columns(1)
 
+    with col9:
+        st.plotly_chart(fig7, use_container_width=True)
 
+    with col11:
+        st.plotly_chart(fig9, use_container_width=True)
 
     with col1:
         st.plotly_chart(fig1, use_container_width=True)
@@ -422,22 +434,29 @@ def display_overview(df):
     with col4:
         st.plotly_chart(fig4, use_container_width=True)
 
-    with col5[0]:
+    with col10:
+        # Display frequent words
+        frequent_words_placeholder = st.empty()
+        # Placeholder for the visualization
+        interactiv_fig = interactive_transaction_analysis(df)
+        frequent_words_placeholder.plotly_chart(interactiv_fig, use_container_width=True)
+
+    with col5:
         st.plotly_chart(fig5, use_container_width=True)
-    
+
     with col6[0]:
         st.plotly_chart(fig6, use_container_width=True)
     
     with col7:
-        st.plotly_chart(fig7, use_container_width=True)
+        # st.plotly_chart(fig7, use_container_width=True)
+        fig11 = interactive_histogram_category(df)
+        st.plotly_chart(fig11, use_container_width=True)
 
     with col8:
         st.plotly_chart(fig8, use_container_width=True)
     
-    with col9[0]:
-        st.plotly_chart(fig9, use_container_width=True)
+    # with col9[0]:
 
-    
 
 
 
@@ -459,17 +478,52 @@ def get_frequent_words(column, n=10):
     frequent_words = word_counts.most_common(n)
     return frequent_words
 
-def interactive_transaction_analysis(df, column_name, n):
+def interactive_transaction_analysis(df):
+    column_name = st.sidebar.selectbox(
+        'Top n Frequent Words in:',
+        ('Transaction_Name', 'Transaction_Comment'),
+        key='column_name_selectbox'
+    )
+    n = st.sidebar.slider('Select number of top frequent words:', 1, 30, 10)
     frequent_words = get_frequent_words(df[column_name], n)
     words = [pair[0] for pair in frequent_words]
     frequencies = [pair[1] for pair in frequent_words]
     # fig = go.Figure(go.Bar(x=words, y=frequencies, marker_color='skyblue'))
     # fig.update_layout(xaxis=dict(title='Words'), yaxis=dict(title='Frequency'), title=f'Top {n} Frequent Words', xaxis_tickangle=-45, height=400, width=600)
     # st.plotly_chart(fig)
-    fig = go.Figure(go.Bar(x=words, y=frequencies, marker_color='skyblue'))
-    fig.update_layout(xaxis=dict(title='Words'), yaxis=dict(title='Frequency'), title=f'Top {n} Frequent Words', xaxis_tickangle=-45, height=400, width=600)
+    fig = go.Figure(go.Bar(x=words, y=frequencies))
+    fig.update_layout(xaxis=dict(title='Words'), yaxis=dict(title='Frequency'), title=f'Top {n} Frequent Words in {column_name}', xaxis_tickangle=-45)
     return fig
 
+
+# def interactive_histogram_category(df):
+#     category_options = df['Transaction_Category1'].unique().tolist()
+#     selected_category = st.sidebar.selectbox('Select Transaction Category:', category_options)
+#
+#     filtered_df = df[df['Transaction_Category1'] == selected_category]
+#
+#     fig = px.histogram(filtered_df, x='Transaction_Amount', nbins=20,
+#                        title=f'Distribution of Transaction Amount for Category {selected_category}')
+#     fig.update_layout(xaxis_title='Transaction Amount', yaxis_title='Frequency')
+#     return fig
+
+def interactive_histogram_category(df):
+    log_transform = st.sidebar.checkbox('Log Transformation on Transactiion Amount', value=False)
+    category_options = df['Transaction_Category1'].unique().tolist()
+    selected_category = st.sidebar.selectbox('Select Transaction Category:', category_options)
+
+    filtered_df = df[df['Transaction_Category1'] == selected_category]
+
+    # Apply log transformation if selected
+    if log_transform:
+        filtered_df['Transaction_Amount'] = filtered_df['Transaction_Amount'].apply(lambda x: np.log(x))
+
+    fig = px.histogram(filtered_df, x='Transaction_Amount', color='Transaction_Type',
+                       barmode='overlay', histfunc='count', title=f'Distribution of Transaction Amount for Category {selected_category}',
+                       labels={'Transaction_Amount': 'Transaction Amount'})
+    fig.update_layout(xaxis_title='Transaction Amount', yaxis_title='Frequency', legend_title='Transaction Type')
+    # st.plotly_chart(fig)
+    return fig
 
 def get_unique_values(df):
     unique_values_by_column = {}
@@ -505,7 +559,7 @@ def manual_update(old_data):
         if st.button("Update Row"):
             # Call functions to update tabular data
             updated_row_data = [fd_name, state, region, member_status, file_name, respondent_id, date, week,
-                                transaction_nature, transaction_type, transaction_category, category_name,
+                                transaction_nature, transaction_type, transaction_category,
                                 transaction_name, transaction_amount, transaction_comment]
             # Update tabular data with the new row data
             updated_data = update_tabular_data(df, updated_row_data)
@@ -519,6 +573,7 @@ def manual_update(old_data):
                 file_name="Updated_data.csv",
                 mime='text/csv',
             )
+            return updated_data
 
 def update_tabular_data(old_data, updated_row_data):
     new_row = pd.DataFrame([updated_row_data], columns=old_data.columns)
@@ -582,7 +637,7 @@ def ocr_result(pdf_files):
                 'Transaction_Nature': st.column_config.TextColumn('Transaction Nature'),
                 'Transaction_Type': st.column_config.TextColumn('Transaction Type'),
                 'Transaction_Category': st.column_config.TextColumn('Transaction Category'),
-                'Category_Name': st.column_config.TextColumn('Category Name'),
+                # 'Category_Name': st.column_config.TextColumn('Category Name'),
                 'Transaction_Name': st.column_config.TextColumn('Transaction Name'),
                 'Transaction_Amount': st.column_config.NumberColumn('Transaction Amount'),
                 'Transaction_Comment': st.column_config.TextColumn('Transaction Comment'),
