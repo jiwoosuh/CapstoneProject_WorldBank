@@ -25,7 +25,7 @@ sys.path.append(Path(os.getcwd()).parent)
 
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
-# from source_code.pdf2csv_easyOCR import ocr_result
+from source_code.pdf2csv_easyOCR import ocr_result
 def extract_folder_name(zip_file):
     extract_path = os.getcwd()
 
@@ -183,8 +183,8 @@ def display_overview(df):
     count_nwag = df[df["Member_Status"] == "NON WAG"]['Respondent_ID'].nunique()
     total_income = df[df["Transaction_Type"] == "Income"]
     income_per = (total_income["Transaction_Amount"].sum()/df["Transaction_Amount"].sum())*100
-    total_expence = df[df["Transaction_Type"] == "Expenditure"]
-    expence_per = (total_expence["Transaction_Amount"].sum()/df["Transaction_Amount"].sum())*100
+    total_expense = df[df["Transaction_Type"] == "Expenditure"]
+    expense_per = (total_expense["Transaction_Amount"].sum()/df["Transaction_Amount"].sum())*100
     total_fixed = df[df["Transaction_Nature"] == "Fixed"]
     fixed_per = (total_fixed["Transaction_Amount"].sum()/df["Transaction_Amount"].sum())*100
     total_var = df[df["Transaction_Nature"] == "Variable"]
@@ -207,7 +207,7 @@ def display_overview(df):
                         <p style='margin-bottom: 10px;font-weight: bold; font-size: 20px;'>Transaction Type</p>
                         <div style='display: flex; justify-content: space-between; width: 290px; height:100px; background-color: white; padding: 20px; border-radius: 10px;'>
                             <div style='margin: 0 3% 0 10%;'>Income<br>{income_per.round(1)}%</div>
-                            <div style='margin: 0 8% 0 3%;'>Expenditure<br>{expence_per.round(1)}%</div>
+                            <div style='margin: 0 8% 0 3%;'>Expenditure<br>{expense_per.round(1)}%</div>
                         </div>
                     </div>
                     <div style='margin: 10px;'>
@@ -230,7 +230,7 @@ def display_overview(df):
     trace2 = go.Histogram(x=non_wag_transaction_amount_log, opacity=0.7, marker=dict(color='skyblue'), name='NON WAG')
 
     layout = go.Layout(
-        title='Distribution of Transaction Amount (log)',
+        title='Distribution of Transaction Amount by Member Status(log)',
         xaxis=dict(title='Transaction Amount (log)'),
         yaxis=dict(title='Frequency'),
         barmode='overlay',
@@ -247,12 +247,14 @@ def display_overview(df):
     # Plot 2
     fig2 = px.bar(df, x='Transaction_Type', y='Transaction_Amount', color='Transaction_Nature',
                   title='Transaction Amount by Type and Nature')
+
     fig2.update_layout(legend=dict(
         orientation="h",
         yanchor="bottom",
         y=1.02,
         xanchor="right",
-        x=1
+        x=1,
+        title=''
     ))
 
     # Plot 3
@@ -263,35 +265,39 @@ def display_overview(df):
         yanchor="bottom",
         y=1.02,
         xanchor="right",
-        x=1
+        x=1,
+        title=''
     ))
+
     # Plot 4
+    # Creating subplots
     fig4 = make_subplots(rows=1, cols=2, shared_yaxes=True)
+
+    # Plotting Income
     fig4.add_trace(
         go.Bar(x=total_income['Year'], y=total_income['Transaction_Amount']),
         row=1, col=1
     )
 
+    # Adding expenses bar chart with customized hover template
     fig4.add_trace(
-        go.Bar(x=total_expence['Year'], y=total_expence['Transaction_Amount']),
-        row=1, col=2
-    )
+        go.Bar(x=total_expense['Year'], y=total_expense['Transaction_Amount']),
+        row=1, col=2)
 
+    # Hiding legend
     fig4.update_traces(showlegend=False)
 
-    # Add subtitles
+    # Adding subtitles
     fig4.update_layout(
         title_text="Transaction Amount by Year",
         annotations=[
-            dict(
-                text="Income", x=0.220, y=-0.15, showarrow=False, xref="paper", yref="paper", font=dict(size=14)
-            ),
-            dict(
-                text="Expense", x=0.780, y=-0.15, showarrow=False, xref="paper", yref="paper", font=dict(size=14)
-            )
+            dict(text="Income", x=0.220, y=-0.15, showarrow=False, xref="paper", yref="paper", font=dict(size=14)),
+            dict(text="Expense", x=0.780, y=-0.15, showarrow=False, xref="paper", yref="paper", font=dict(size=14))
         ]
     )
-    fig4.update_layout(height=450, width=800, title_text="Transaction Amount by Year")
+
+    # Adjusting layout
+    fig4.update_layout(height=450, width=800)
 
     # Plot 5
     custom_stopwords = ["the", "and", "to", "of", "in", "for", "on", "with", "by", "from", "at", "is", "are", "was",
@@ -320,12 +326,20 @@ def display_overview(df):
 
     # Plot 6
     fig6 = px.bar(df, x='Week', y='Transaction_Amount', color='Transaction_Category1', barmode='group',
-                  title='Transaction Category by Week')
+                  title='Transaction Category by Week', color_discrete_sequence=px.colors.qualitative.Set3)
+    fig6.update_layout(legend=dict(
+        orientation="h",
+        yanchor="top",
+        y=1.12,
+        xanchor="right",
+        x=1,
+        title=''
+    ))
 
     # Plot 7 Create a bar chart for FD_Name counts
     fd_name_counts = df['FD_Name'].value_counts().reset_index()
     fd_name_counts.columns = ['FD_Name', 'count']
-    fig7 = px.bar(fd_name_counts, y='FD_Name', x='count', orientation='h', title='Name of Financial Diaries Count')
+    fig7 = px.bar(fd_name_counts, y='FD_Name', x='count', orientation='h', title='Name of Financial Diaries Count', color_discrete_sequence=['rgb(128, 177, 211)'])
     
     
     # Plot 8 Create a stacked bar chart for Transaction_Type by Transaction_Category1
@@ -337,7 +351,13 @@ def display_overview(df):
             y=transaction_type_category_counts[transaction_type],
             name=transaction_type
         ))
-    fig8.update_layout(barmode='stack', title='Transaction Type by Category')
+    fig8.update_layout(barmode='stack', title='Transaction Type by Category', xaxis_tickangle=-45,
+        legend=dict(
+        orientation="h",
+        yanchor="bottom",
+        y=1.02,
+        xanchor="right",
+        x=1))
 
     #Plot 9 State vs Region, counts
     grouped = df.groupby(['State', 'Region']).size().reset_index(name='Counts')
@@ -345,7 +365,7 @@ def display_overview(df):
 
     fig9 = go.Figure()
 
-    colors = px.colors.qualitative.Plotly  # or any other color sequence
+    colors = px.colors.qualitative.Set3  # or any other color sequence
 
     # Create a stacked bar chart
     for i, region in enumerate(pivot_df.columns):
@@ -359,7 +379,7 @@ def display_overview(df):
     # Customizing the layout of the chart
     fig9.update_layout(
         barmode='stack',
-        title='Documents Count by Regions within Each State',
+        title='Transaction Count by Regions within Each State',
         xaxis=dict(title='State'),
         yaxis=dict(title='Count'),
         showlegend=False  # hide the legend
@@ -379,7 +399,7 @@ def display_overview(df):
                     showarrow=False,
                     font=dict(
                         size=10,
-                        color='white'
+                        color='dimgray'
                     ),
                     xanchor='center'
                 )
@@ -401,29 +421,18 @@ def display_overview(df):
 # Fig11 - interactive transaction amount for category
 
 
-    # col2, col3, col4 = st.columns(3)
-    # col1, col5 = st.columns([1, 2])
-    # col6, col7, col8 = st.columns(3)
-    # col9, col10 = st.columns([1, 1])
     col9, col11 = st.columns([1,2])
     col2, col3, col4 = st.columns(3)
-    col1, col7, col8 = st.columns(3)
-    # col5 = st.columns(1)
-    # col10 = st.columns(1)
+    fig11 = interactive_histogram_category(df)
+    st.plotly_chart(fig11, use_container_width=True)
+    col8, col6 = st.columns([1,2])
     col10, col5 = st.columns([1,2])
-    col6 = st.columns(1)
+    # We'll rearrange the order of the plots
+    st.plotly_chart(fig1, use_container_width=True)
 
-    # col9 = st.columns(1)
-    # col11 = st.columns(1)
 
-    with col9:
-        st.plotly_chart(fig7, use_container_width=True)
-
-    with col11:
-        st.plotly_chart(fig9, use_container_width=True)
-
-    with col1:
-        st.plotly_chart(fig1, use_container_width=True)
+    # with col1:
+    #     st.plotly_chart(fig1, use_container_width=True)
 
     with col2:
         st.plotly_chart(fig2, use_container_width=True)
@@ -434,6 +443,22 @@ def display_overview(df):
     with col4:
         st.plotly_chart(fig4, use_container_width=True)
 
+    with col5:
+        st.plotly_chart(fig5, use_container_width=True)
+
+    with col6:
+        st.plotly_chart(fig6, use_container_width=True)
+    
+    # with col7:
+    #     fig11 = interactive_histogram_category(df)
+    #     st.plotly_chart(fig11, use_container_width=True)
+
+    with col8:
+        st.plotly_chart(fig8, use_container_width=True)
+
+    with col9:
+        st.plotly_chart(fig7, use_container_width=True)
+
     with col10:
         # Display frequent words
         frequent_words_placeholder = st.empty()
@@ -441,21 +466,9 @@ def display_overview(df):
         interactiv_fig = interactive_transaction_analysis(df)
         frequent_words_placeholder.plotly_chart(interactiv_fig, use_container_width=True)
 
-    with col5:
-        st.plotly_chart(fig5, use_container_width=True)
+    with col11:
+        st.plotly_chart(fig9, use_container_width=True)
 
-    with col6[0]:
-        st.plotly_chart(fig6, use_container_width=True)
-    
-    with col7:
-        # st.plotly_chart(fig7, use_container_width=True)
-        fig11 = interactive_histogram_category(df)
-        st.plotly_chart(fig11, use_container_width=True)
-
-    with col8:
-        st.plotly_chart(fig8, use_container_width=True)
-    
-    # with col9[0]:
 
 
 
@@ -508,21 +521,37 @@ def interactive_transaction_analysis(df):
 #     return fig
 
 def interactive_histogram_category(df):
-    log_transform = st.sidebar.checkbox('Log Transformation on Transactiion Amount', value=False)
-    category_options = df['Transaction_Category1'].unique().tolist()
-    selected_category = st.sidebar.selectbox('Select Transaction Category:', category_options)
+    selected_category = 'Business'
+    log_transform = False
+    st.write(
+        f'<div style="font-size: 16px; font-weight:bold;">'
+        f'Distribution of Transaction Amount for Category {selected_category}'
+        '</div>',
+        unsafe_allow_html=True
+    )
+    log_transform = st.checkbox('Log Transformation on Transaction Amount', value=log_transform)
 
+    category_options = df['Transaction_Category1'].unique().tolist()
+    selected_category = st.selectbox('Select Transaction Category:', category_options, index=category_options.index(selected_category))
     filtered_df = df[df['Transaction_Category1'] == selected_category]
 
-    # Apply log transformation if selected
     if log_transform:
         filtered_df['Transaction_Amount'] = filtered_df['Transaction_Amount'].apply(lambda x: np.log(x))
 
     fig = px.histogram(filtered_df, x='Transaction_Amount', color='Transaction_Type',
-                       barmode='overlay', histfunc='count', title=f'Distribution of Transaction Amount for Category {selected_category}',
-                       labels={'Transaction_Amount': 'Transaction Amount'})
-    fig.update_layout(xaxis_title='Transaction Amount', yaxis_title='Frequency', legend_title='Transaction Type')
-    # st.plotly_chart(fig)
+                       barmode='overlay', histfunc='count',
+                       labels={'Transaction_Amount': 'Transaction Amount'},
+                       color_discrete_map={'Income': 'navy', 'Expenditure': 'skyblue'}, opacity=0.8)
+
+    fig.update_layout(legend=dict(
+        orientation="h",
+        yanchor="bottom",
+        y=1.02,
+        xanchor="right",
+        x=1,
+        title=''
+    ))
+
     return fig
 
 def get_unique_values(df):
