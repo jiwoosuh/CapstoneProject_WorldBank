@@ -9,23 +9,23 @@ import plotly.graph_objects as go
 from wordcloud import WordCloud
 from plotly.subplots import make_subplots
 import csv
-from datasets import Dataset
-import cv2
-from pdf2image import convert_from_path
-import easyocr
-import torch
+# from datasets import Dataset
+# import cv2
+# from pdf2image import convert_from_path
+# import easyocr
+# import torch
 import sys
 from pathlib import Path
 import nltk
 from nltk.corpus import stopwords
 from collections import Counter
-from transformers import pipeline
+# from transformers import pipeline
 st.set_option('deprecation.showPyplotGlobalUse', False)
 sys.path.append(Path(os.getcwd()).parent)
 
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
-from source_code.pdf2csv_easyOCR import ocr_result
+# from source_code.pdf2csv_easyOCR import ocr_result
 
 st.set_page_config(
     layout='wide',
