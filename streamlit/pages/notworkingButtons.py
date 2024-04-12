@@ -531,38 +531,95 @@ st.markdown(
 
 from utils import *
 
+
+# Define a simple session state class
+class SessionState:
+    def __init__(self):
+        self.update_type = None
+        self.update_method = None
+
+session_state = SessionState()
+
+if 'stage' not in st.session_state:
+    st.session_state.stage = 0
+
+def set_state(i):
+    st.session_state.stage = i
+
 def main():
-    st.write("💡Unlock insights by uploading your documents")
-    st.subheader('1. Choose an upload type')
-    upload_file = st.checkbox("Upload your ZIP folder of Word files or PDF file")
-    update_manually = st.checkbox("Manual Update")
-    if upload_file:
-        folder_upload = st.file_uploader("Upload a zip file only", type=["zip"], key="folder_upload")
-        old_upload = 'Financial_Diaries_final.csv'
+    st.subheader("Unlock insights by uploading your documents 💡", divider='grey')
+    st.subheader('1. What is your task?')
 
-    if update_manually:
-        manual_update(old_upload)
+    if st.button("Update a current CSV file"):
+        session_state.update_type = "current"
+        set_state(1)
 
-    st.subheader('2. Check the box to merge the new document to your previous CSV file of Financial Diaries')
-    use_own_csv = st.checkbox("Update your own CSV file")
-    if use_own_csv:
-        old_upload = st.file_uploader("Upload your previous CSV file", type=["csv"], key="old_upload")
-    st.subheader('3. Enter the file name for the new CSV file')
-    file_name = st.text_input("The new file name:", value='Financial_Diaries_updated.csv')
-    if st.button("Submit"):
-        final_output = process_data(folder_upload, old_upload, file_name)
-        display_data_structure(final_output)
-        display_overview(final_output)
-        column_name = st.selectbox(
-            'Choose between columns',
-            ('Transaction_Name', 'Transaction_Comment'))
-        n = st.sidebar.slider('Select number of top frequent words:', 1, 30, 10)
+    if st.button("Update your own CSV file"):
+        session_state.update_type = "own"
+        set_state(1)
 
-        # Placeholder for the visualization
-        placeholder = st.empty()
-        fig = interactive_transaction_analysis(final_output, column_name, n)
-        placeholder.plotly_chart(fig)
+    if st.session_state.stage == 1:
+        if session_state.update_type == "current":
+            st.subheader('2. How do you want to update the current CSV file?')
+            old_upload = 'Financial_Diaries_final.csv'
 
+            if st.button("Upload new documents", on_click=set_state, args=[2]):
+                session_state.update_method = "upload"
+
+            if st.button("Type input manually", on_click=set_state, args=[3]):
+                session_state.update_method = "manual"
+
+        if session_state.update_type == "own":
+            st.subheader('2. How do you want to update your own CSV file?')
+            old_upload = st.file_uploader("Upload your previous CSV file", type=["csv"], key="old_upload")
+
+            if st.button("Upload new documents", on_click=set_state, args=[2]):
+                session_state.update_method = "upload"
+
+            if st.button("Type input manually", on_click=set_state, args=[3]):
+                session_state.update_method = "manual"
+
+    if st.session_state.stage == 2:
+        if session_state.update_method == "upload":
+            folder_upload = st.file_uploader("Upload a zip file only", type=["zip"], key="folder_upload")
+            st.subheader('3. Enter the file name for the new CSV file')
+            file_name = st.text_input("The new file name:", value='Financial_Diaries_updated.csv')
+
+            if st.button("Submit"):
+                final_output = process_data(folder_upload, old_upload, file_name)
+                display_data_structure(final_output)
+                display_overview(final_output)
+                column_name = st.selectbox(
+                    'Choose between columns',
+                    ('Transaction_Name', 'Transaction_Comment'))
+                n = st.sidebar.slider('Select number of top frequent words:', 1, 30, 10)
+
+                # Placeholder for the visualization
+                placeholder = st.empty()
+                fig = interactive_transaction_analysis(final_output, column_name, n)
+                placeholder.plotly_chart(fig)
+
+        if session_state.update_method == "manual":
+            manual_update(old_upload)
+            st.subheader('3. Enter the file name for the new CSV file')
+            file_name = st.text_input("The new file name:", value='Financial_Diaries_updated.csv')
+
+            if st.button("Submit"):
+                final_output = process_data(folder_upload, old_upload, file_name)
+                display_data_structure(final_output)
+                display_overview(final_output)
+                column_name = st.selectbox(
+                    'Choose between columns',
+                    ('Transaction_Name', 'Transaction_Comment'))
+                n = st.sidebar.slider('Select number of top frequent words:', 1, 30, 10)
+
+                # Placeholder for the visualization
+                placeholder = st.empty()
+                fig = interactive_transaction_analysis(final_output, column_name, n)
+                placeholder.plotly_chart(fig)
+
+    if st.session_state.stage == 3:
+        st.button('Start Over', on_click=set_state, args=[0])
 
 if __name__ == "__main__":
     main()
