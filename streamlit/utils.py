@@ -395,8 +395,8 @@ def manual_update(old_data):
         week = st.number_input("Week:", min_value = 1,max_value=5)
         transaction_nature = st.selectbox("Transaction_Nature:", unique_values['Transaction_Nature'])
         transaction_type = st.selectbox("Transaction_Type:", unique_values['Transaction_Type'])
-        transaction_category = st.selectbox("Transaction_Category:", unique_values['Transaction_Category'])
-        category_name = st.selectbox("Category_Name:", unique_values['Category_Name'])
+        transaction_category = st.selectbox("Transaction_Category:", unique_values['Transaction_Category1'])
+        # category_name = st.selectbox("Category_Name:", unique_values['Category_Name'])
         transaction_name = st.text_input("Transaction_Name:")
         transaction_amount = st.number_input("Transaction_Amount:")
         transaction_comment = st.text_input("Transaction_Comment:")
@@ -517,3 +517,9 @@ def process_data(folder_upload, old_upload, filename):
             return final_output
         else:
             st.error("Please upload a zip file.")
+
+def get_session_state():
+    session_state = st.session_state
+    if 'manual_update_data' not in session_state:
+        session_state['manual_update_data'] = None
+    return session_state
