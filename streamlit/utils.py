@@ -20,12 +20,15 @@ import nltk
 from nltk.corpus import stopwords
 from collections import Counter
 from transformers import pipeline
+
 st.set_option('deprecation.showPyplotGlobalUse', False)
 sys.path.append(Path(os.getcwd()).parent)
 
 from source_code.word2csv import get_file_locations, extract_info_from_docx, convert_table_to_csv_file
 from source_code.data_cleaning import clean_date_format, fix_year_format, clean_mem_status, clean_transaction_amount
-from source_code.pdf2csv_easyOCR import ocr_result
+
+
+# from source_code.pdf2csv_easyOCR import ocr_result
 def extract_folder_name(zip_file):
     extract_path = os.getcwd()
 
@@ -36,18 +39,21 @@ def extract_folder_name(zip_file):
     if os.path.exists(macosx_folder):
         shutil.rmtree(macosx_folder)
 
+
 # @st.cache_data
 def data_extraction(folder):
     file_locations = get_file_locations(folder)
     num_files = len(file_locations)
-    csv_file_header = ['FD_Name', 'State', 'Region', 'Member_Status', 'File_Name', 'Respondent_ID', 'Date', 'Week', 'Transaction_Nature', 'Transaction_Type', 'Transaction_Name', 'Transaction_Amount', 'Transaction_Comment']
+    csv_file_header = ['FD_Name', 'State', 'Region', 'Member_Status', 'File_Name', 'Respondent_ID', 'Date', 'Week',
+                       'Transaction_Nature', 'Transaction_Type', 'Transaction_Name', 'Transaction_Amount',
+                       'Transaction_Comment']
     print(num_files)
     combined_csv_data = []
-    progress_bar = st.progress(0, text = 'Extracting Data...')
+    progress_bar = st.progress(0, text='Extracting Data...')
     for i, docx_file in enumerate(file_locations):
         progress = (i + 1) / num_files
-        progress_bar.progress(progress, text = 'Extracting Data...')
-        #st.write(f'Processing file: {docx_file}')
+        progress_bar.progress(progress, text='Extracting Data...')
+        # st.write(f'Processing file: {docx_file}')
         csv_data = convert_table_to_csv_file(docx_file, csv_file_header)
         combined_csv_data.extend(csv_data)
 
@@ -57,6 +63,7 @@ def data_extraction(folder):
         writer.writerow(csv_file_header)  # Write the header
         writer.writerows(combined_csv_data)  # Write the data
     return combined_output_csv
+
 
 def data_cleaning(combined_ouput_csv):
     # Data cleaning
@@ -110,10 +117,12 @@ def add_column_if_missing(df, column_name, after_column):
         df.insert(idx, column_name, None)
     return df
 
+
 def zeroshot_transaction(df):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
     classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli", device=device)
+
     def classify_transaction(transaction_name):
         labels = [
             'Miscellaneous',
@@ -128,15 +137,17 @@ def zeroshot_transaction(df):
         ]
         result = classifier(transaction_name, labels)
         return result['labels'][0]
+
     df = add_column_if_missing(df, 'Transaction_Category1', 'Transaction_Name')
     # df['Transaction_Category1'] = classify_transaction(df['Transaction_Name'])
     df['Transaction_Category1'] = df['Transaction_Name'].apply(classify_transaction)
     # print(classified_df[['Transaction_Name', 'Transaction_Category1']].head(10))
     return df
 
-def data_update_and_save(old_data,new_data,file_name):
+
+def data_update_and_save(old_data, new_data, file_name):
     old_data = pd.read_csv(old_data)
-    updated_data = pd.concat([old_data,new_data])
+    updated_data = pd.concat([old_data, new_data])
     updated_data = updated_data.drop_duplicates()
     # st.download_button(
     #     label="Download Updated CSV",
@@ -155,6 +166,7 @@ def data_update_and_save(old_data,new_data,file_name):
         st.dataframe(df)
         return df
 
+
 def display_data_structure(df):
     info_data = []
     for column in df.columns:
@@ -172,6 +184,7 @@ def display_data_structure(df):
     st.write(f"**Number of Variables: {df.shape[1]}**")
     st.dataframe(info_df)
 
+
 def display_overview(df):
     # df['Formatted_Date'] = pd.to_datetime(df['Formatted_Date'])
     # df['Year'] = df['Formatted_Date'].dt.year
@@ -182,13 +195,13 @@ def display_overview(df):
     count_wag = df[df["Member_Status"] == "WAG"]['Respondent_ID'].nunique()
     count_nwag = df[df["Member_Status"] == "NON WAG"]['Respondent_ID'].nunique()
     total_income = df[df["Transaction_Type"] == "Income"]
-    income_per = (total_income["Transaction_Amount"].sum()/df["Transaction_Amount"].sum())*100
+    income_per = (total_income["Transaction_Amount"].sum() / df["Transaction_Amount"].sum()) * 100
     total_expense = df[df["Transaction_Type"] == "Expenditure"]
-    expense_per = (total_expense["Transaction_Amount"].sum()/df["Transaction_Amount"].sum())*100
+    expense_per = (total_expense["Transaction_Amount"].sum() / df["Transaction_Amount"].sum()) * 100
     total_fixed = df[df["Transaction_Nature"] == "Fixed"]
-    fixed_per = (total_fixed["Transaction_Amount"].sum()/df["Transaction_Amount"].sum())*100
+    fixed_per = (total_fixed["Transaction_Amount"].sum() / df["Transaction_Amount"].sum()) * 100
     total_var = df[df["Transaction_Nature"] == "Variable"]
-    var_per = (total_var["Transaction_Amount"].sum()/df["Transaction_Amount"].sum())*100
+    var_per = (total_var["Transaction_Amount"].sum() / df["Transaction_Amount"].sum()) * 100
 
     st.markdown(f"""
     <div style='background-color: #CCE5FF; padding: 10px; border-radius: 10px;'>
@@ -313,8 +326,8 @@ def display_overview(df):
     # Generate Word Cloud
     # wordcloud = WordCloud(background_color='white', colormap='Blues_r', height=600, width=1850,
     #                       min_font_size=10).generate(transaction_names_str)
-    wordcloud = WordCloud(background_color='white', colormap='Blues_r', height=600, width=1850,
-                          min_font_size=10).generate(transaction_names_str)
+    wordcloud = WordCloud(background_color='white', colormap='Blues_r', height=1500, width=2050,
+                          min_font_size=15).generate(transaction_names_str)
 
     # Convert Word Cloud to Plotly image
     img_rgb = wordcloud.to_array()
@@ -322,7 +335,6 @@ def display_overview(df):
     fig5.update_layout(title='Word Cloud for Transaction Name',
                        xaxis_visible=False,
                        yaxis_visible=False)
-
 
     # Plot 6
     fig6 = px.bar(df, x='Week', y='Transaction_Amount', color='Transaction_Category1', barmode='group',
@@ -339,11 +351,12 @@ def display_overview(df):
     # Plot 7 Create a bar chart for FD_Name counts
     fd_name_counts = df['FD_Name'].value_counts().reset_index()
     fd_name_counts.columns = ['FD_Name', 'count']
-    fig7 = px.bar(fd_name_counts, y='FD_Name', x='count', orientation='h', title='Name of Financial Diaries Count', color_discrete_sequence=['rgb(128, 177, 211)'])
-    
-    
+    fig7 = px.bar(fd_name_counts, y='FD_Name', x='count', orientation='h', title='Name of Financial Diaries Count',
+                  color_discrete_sequence=['rgb(128, 177, 211)'])
+
     # Plot 8 Create a stacked bar chart for Transaction_Type by Transaction_Category1
-    transaction_type_category_counts = df.groupby(['Transaction_Category1', 'Transaction_Type']).size().unstack().fillna(0)
+    transaction_type_category_counts = df.groupby(
+        ['Transaction_Category1', 'Transaction_Type']).size().unstack().fillna(0)
     fig8 = go.Figure()
     for transaction_type in transaction_type_category_counts.columns:
         fig8.add_trace(go.Bar(
@@ -351,15 +364,15 @@ def display_overview(df):
             y=transaction_type_category_counts[transaction_type],
             name=transaction_type
         ))
-    fig8.update_layout(barmode='stack', title='Transaction Type by Category', xaxis_tickangle=-45,
-        legend=dict(
-        orientation="h",
-        yanchor="bottom",
-        y=1.02,
-        xanchor="right",
-        x=1))
+    fig8.update_layout(barmode='stack', title='Transaction by Type', xaxis_tickangle=-45,
+                       legend=dict(
+                           orientation="h",
+                           yanchor="bottom",
+                           y=1.02,
+                           xanchor="right",
+                           x=1))
 
-    #Plot 9 State vs Region, counts
+    # Plot 9 State vs Region, counts
     grouped = df.groupby(['State', 'Region']).size().reset_index(name='Counts')
     pivot_df = grouped.pivot(index='State', columns='Region', values='Counts').fillna(0)
 
@@ -404,35 +417,30 @@ def display_overview(df):
                     xanchor='center'
                 )
 
-    
-    
+    # Fig1- histogram
+    # Fig2- type, nature, amount
+    # Fig3-week,amount type
+    # Fig4- year, amount, income, expenditure
+    # Fig5- word cloud
+    # Fig6- week, category
 
-# Fig1- histogram 
-# Fig2- type, nature, amount
-# Fig3-week,amount type
-# Fig4- year, amount, income, expenditure
-# Fig5- word cloud
-# Fig6- week, category
+    # Fig7- fd name count
+    # Fig8- type, category
+    # Fig9- State, region
+    # Fig10 - interactive transaction word freq
+    # Fig11 - interactive transaction amount for category
 
-# Fig7- fd name count
-# Fig8- type, category
-# Fig9- State, region
-# Fig10 - interactive transaction word freq
-# Fig11 - interactive transaction amount for category
-
-
-    col9, col11 = st.columns([1,2])
-    col2, col3, col4 = st.columns(3)
-    fig11 = interactive_histogram_category(df)
-    st.plotly_chart(fig11, use_container_width=True)
-    col8, col6 = st.columns([1,2])
-    col10, col5 = st.columns([1,2])
     # We'll rearrange the order of the plots
-    st.plotly_chart(fig1, use_container_width=True)
+    col9, col11 = st.columns([1, 2])
+    col2, col3, col4 = st.columns(3)
+    col15, col16 = st.columns([1, 2])
+    col6, col8 = st.columns(2)
+    col1, col5 = st.columns(2)
+    col13, col14 = st.columns((1, 2))
 
 
-    # with col1:
-    #     st.plotly_chart(fig1, use_container_width=True)
+    with col1:
+        st.plotly_chart(fig1, use_container_width=True)
 
     with col2:
         st.plotly_chart(fig2, use_container_width=True)
@@ -448,7 +456,7 @@ def display_overview(df):
 
     with col6:
         st.plotly_chart(fig6, use_container_width=True)
-    
+
     # with col7:
     #     fig11 = interactive_histogram_category(df)
     #     st.plotly_chart(fig11, use_container_width=True)
@@ -459,16 +467,31 @@ def display_overview(df):
     with col9:
         st.plotly_chart(fig7, use_container_width=True)
 
-    with col10:
-        # Display frequent words
-        frequent_words_placeholder = st.empty()
-        # Placeholder for the visualization
-        interactiv_fig = interactive_transaction_analysis(df)
-        frequent_words_placeholder.plotly_chart(interactiv_fig, use_container_width=True)
+    # with col10:
+    #     # Display frequent words
+    #     frequent_words_placeholder = st.empty()
+    #     # Placeholder for the visualization
+    #     interactiv_fig = interactive_transaction_analysis(df)
+    #     frequent_words_placeholder.plotly_chart(interactiv_fig, use_container_width=True)
 
     with col11:
         st.plotly_chart(fig9, use_container_width=True)
 
+    with col13:
+        column_name, n = display_control_panel_1()
+
+    with col14:
+        frequent_words = get_frequent_words(df[column_name], n)
+        words = [pair[0] for pair in frequent_words]
+        frequencies = [pair[1] for pair in frequent_words]
+        display_bar_chart(words, frequencies, column_name, n)
+
+    with col15:
+        selected_category, log_transform = display_control_panel_2(df)
+
+    with col16:
+        fig = display_histogram(selected_category, log_transform, df)
+        st.plotly_chart(fig)
 
 
 
@@ -485,28 +508,55 @@ def preprocess_text(column):
         tokens.extend(filtered_words)
     return tokens
 
+
 def get_frequent_words(column, n=10):
     all_words = preprocess_text(column)
     word_counts = Counter(all_words)
     frequent_words = word_counts.most_common(n)
     return frequent_words
 
-def interactive_transaction_analysis(df):
-    column_name = st.sidebar.selectbox(
+
+# def interactive_transaction_analysis(df):
+#     column_name = st.selectbox(
+#         'Top n Frequent Words in:',
+#         ('Transaction_Name', 'Transaction_Comment'),
+#         key='column_name_selectbox'
+#     )
+#     n = st.slider('Select number of top frequent words:', 1, 30, 10)
+#     frequent_words = get_frequent_words(df[column_name], n)
+#     words = [pair[0] for pair in frequent_words]
+#     frequencies = [pair[1] for pair in frequent_words]
+#     st.write(
+#         '<div style="font-size: 16px; font-weight:bold;">'
+#         'Distribution of Transaction Amount for Selected Category'
+#         '</div>',
+#         unsafe_allow_html=True
+#     )
+#     # fig = go.Figure(go.Bar(x=words, y=frequencies, marker_color='skyblue'))
+#     # fig.update_layout(xaxis=dict(title='Words'), yaxis=dict(title='Frequency'), title=f'Top {n} Frequent Words', xaxis_tickangle=-45, height=400, width=600)
+#     # st.plotly_chart(fig)
+#     fig = go.Figure(go.Bar(x=words, y=frequencies))
+#     fig.update_layout(xaxis=dict(title='Words'), yaxis=dict(title='Frequency'),
+#                       title=f'Top {n} Frequent Words in {column_name}', xaxis_tickangle=-45)
+#     return fig
+
+def display_control_panel_1():
+    st.write(
+        '<div style="font-size: 16px; font-weight:bold;"><br>'
+        'Control Panel''<br><br><br></div>',unsafe_allow_html=True)
+    column_name = st.selectbox(
         'Top n Frequent Words in:',
         ('Transaction_Name', 'Transaction_Comment'),
         key='column_name_selectbox'
     )
-    n = st.sidebar.slider('Select number of top frequent words:', 1, 30, 10)
-    frequent_words = get_frequent_words(df[column_name], n)
-    words = [pair[0] for pair in frequent_words]
-    frequencies = [pair[1] for pair in frequent_words]
-    # fig = go.Figure(go.Bar(x=words, y=frequencies, marker_color='skyblue'))
-    # fig.update_layout(xaxis=dict(title='Words'), yaxis=dict(title='Frequency'), title=f'Top {n} Frequent Words', xaxis_tickangle=-45, height=400, width=600)
-    # st.plotly_chart(fig)
-    fig = go.Figure(go.Bar(x=words, y=frequencies))
-    fig.update_layout(xaxis=dict(title='Words'), yaxis=dict(title='Frequency'), title=f'Top {n} Frequent Words in {column_name}', xaxis_tickangle=-45)
-    return fig
+    n = st.slider('Select number of top frequent words:', 1, 30, 10)
+    return column_name, n
+
+def display_bar_chart(words, frequencies, column_name, n):
+    fig = px.bar(x=words, y=frequencies, labels={'x': 'Words', 'y': 'Frequency'},
+                 title=f'Top {n} Frequent Words in {column_name}', text=frequencies)
+    fig.update_xaxes(tickangle=-45)
+    st.plotly_chart(fig)
 
 
 # def interactive_histogram_category(df):
@@ -520,25 +570,67 @@ def interactive_transaction_analysis(df):
 #     fig.update_layout(xaxis_title='Transaction Amount', yaxis_title='Frequency')
 #     return fig
 
-def interactive_histogram_category(df):
+# def interactive_histogram_category(df):
+#     selected_category = 'Business'
+#     log_transform = False
+#     st.write(
+#         '<div style="font-size: 16px; font-weight:bold;">'
+#         'Distribution of Transaction Amount for Selected Category'
+#         '</div>',
+#         unsafe_allow_html=True
+#     )
+#
+#     log_transform = st.checkbox('Log Transformation on Transaction Amount', value=log_transform)
+#
+#     category_options = df['Transaction_Category1'].unique().tolist()
+#     selected_category = st.selectbox('Select Transaction Category:', category_options,
+#                                      index=category_options.index(selected_category))
+#     filtered_df = df[df['Transaction_Category1'] == selected_category]
+#
+#     if log_transform:
+#         filtered_df['Transaction_Amount'] = filtered_df['Transaction_Amount'].apply(lambda x: np.log(x))
+#
+#     filtered_df = df[df['Transaction_Category1'] == selected_category]
+#
+#     fig = px.histogram(filtered_df, x='Transaction_Amount', color='Transaction_Type',
+#                        barmode='overlay', histfunc='count',
+#                        labels={'Transaction_Amount': 'Transaction Amount'},
+#                        color_discrete_map={'Income': 'navy', 'Expenditure': 'skyblue'}, opacity=0.8)
+#
+#     fig.update_layout(legend=dict(
+#         orientation="h",
+#         yanchor="bottom",
+#         y=1.02,
+#         xanchor="right",
+#         x=1,
+#         title=''
+#     ))
+#
+#     return fig
+
+def display_control_panel_2(df):
     selected_category = 'Business'
     log_transform = False
+
     st.write(
-        f'<div style="font-size: 16px; font-weight:bold;">'
-        f'Distribution of Transaction Amount for Category {selected_category}'
-        '</div>',
-        unsafe_allow_html=True
-    )
+        '<div style="font-size: 16px; font-weight:bold;"><br>'
+        'Control Panel''<br><br><br></div>',unsafe_allow_html=True)
+
     log_transform = st.checkbox('Log Transformation on Transaction Amount', value=log_transform)
 
     category_options = df['Transaction_Category1'].unique().tolist()
-    selected_category = st.selectbox('Select Transaction Category:', category_options, index=category_options.index(selected_category))
+    selected_category = st.selectbox('Select Transaction Category:', category_options,
+                                     index=category_options.index(selected_category))
+
+    return selected_category, log_transform
+
+def display_histogram(selected_category, log_transform, df):
     filtered_df = df[df['Transaction_Category1'] == selected_category]
 
     if log_transform:
         filtered_df['Transaction_Amount'] = filtered_df['Transaction_Amount'].apply(lambda x: np.log(x))
 
-    fig = px.histogram(filtered_df, x='Transaction_Amount', color='Transaction_Type',
+    fig = px.histogram(filtered_df, x='Transaction_Amount', color='Transaction_Type', title=f'Distribution of Transaction Amount for Category {selected_category}',
                        barmode='overlay', histfunc='count',
                        labels={'Transaction_Amount': 'Transaction Amount'},
                        color_discrete_map={'Income': 'navy', 'Expenditure': 'skyblue'}, opacity=0.8)
@@ -554,11 +646,13 @@ def interactive_histogram_category(df):
 
     return fig
 
+
 def get_unique_values(df):
     unique_values_by_column = {}
     for column in df.columns:
         unique_values_by_column[column] = df[column].unique()
     return unique_values_by_column
+
 
 def manual_update(old_data):
     # Update Tabular Data Manually
@@ -575,7 +669,7 @@ def manual_update(old_data):
         file_name = st.text_input("File_Name:")
         respondent_id = st.text_input("Respondent ID:")
         date = st.text_input("Date(DD/MM/YYYY):")
-        week = st.number_input("Week:", min_value = 1,max_value=5)
+        week = st.number_input("Week:", min_value=1, max_value=5)
         transaction_nature = st.selectbox("Transaction_Nature:", unique_values['Transaction_Nature'])
         transaction_type = st.selectbox("Transaction_Type:", unique_values['Transaction_Type'])
         transaction_category = st.selectbox("Transaction_Category:", unique_values['Transaction_Category1'])
@@ -604,10 +698,12 @@ def manual_update(old_data):
             )
             return updated_data
 
+
 def update_tabular_data(old_data, updated_row_data):
     new_row = pd.DataFrame([updated_row_data], columns=old_data.columns)
     updated_data = pd.concat([old_data, new_row], ignore_index=True)
     return updated_data
+
 
 def get_pdf_file_locations(folder):
     pdf_file_locations = []
@@ -616,6 +712,7 @@ def get_pdf_file_locations(folder):
             if file.endswith('.pdf'):  # Check if file ends with ".pdf"
                 pdf_file_locations.append(os.path.join(root, file))
     return pdf_file_locations
+
 
 def ocr_result(pdf_files):
     for pdf_file in pdf_files:
@@ -685,6 +782,7 @@ def ocr_result(pdf_files):
             if st.button('Get results', key=button_key):
                 st.write(result)
 
+
 def process_data(folder_upload, old_upload, filename):
     if folder_upload is not None:
         if folder_upload.type == 'application/zip':
@@ -701,6 +799,7 @@ def process_data(folder_upload, old_upload, filename):
             return final_output
         else:
             st.error("Please upload a zip file.")
+
 
 def get_session_state():
     session_state = st.session_state
