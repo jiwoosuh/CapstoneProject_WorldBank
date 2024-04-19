@@ -28,12 +28,34 @@ st.subheader('Introducing Our Solution for Digital Transformation', divider='gre
 # st.subheader("📑 Convert paper-based financial records into CSV files effortlessly.")
 # st.subheader("📊 Access dynamic visual dashboards for comprehensive financial management.")
 
-introduction = '''
-💁‍♀️ Empowering **unbanked women** in Nigeria through :blue[Digital Transformation].  
-📑 Convert paper-based financial records into **CSV files** effortlessly.  
-📊 Access dynamic *visual dashboards* for comprehensive financial management.
-'''
-st.markdown(introduction)
+# introduction = '''
+# 💁‍♀️ Empowering **unbanked women** in Nigeria through :blue[Digital Transformation].
+# 📑 Convert paper-based financial records into **CSV files** effortlessly.
+# 📊 Access dynamic *visual dashboards* for comprehensive financial management.
+# '''
+# st.markdown(introduction)
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown(
+        '<div style="text-align: center; background-color: lightsteelblue; padding: 10px; height:250px; border-radius:10px;"><h1>💁‍♀</h1><p>Empowering <strong>unbanked women</strong> in Nigeria through <font color="blue">Digital Transformation</font></p></div>',
+        unsafe_allow_html=True
+    )
+
+with col2:
+    st.markdown(
+        '<div style="text-align: center;background-color: lightsteelblue; padding: 10px; height:250px; border-radius:10px;"><h1>📑</h1><p>Convert paper-based financial records into <strong>CSV files</strong> effortlessly.</p></div>',
+        unsafe_allow_html=True
+    )
+
+with col3:
+    st.markdown(
+        '<div style="text-align: center;background-color: lightsteelblue; padding: 10px; height:250px; border-radius:10px;margin-bottom:20px;"><h1>📊</h1><p>Access dynamic <em>visual dashboards</em> for comprehensive financial management.</p></div>',
+        unsafe_allow_html=True
+    )
+
+
 st.image('Welcome_image.png', caption='How Docx2Dashboard works')
 st.text("This App is developed in the GWU Data Science Capstone Project")
 st.text("With World Bank Social Sustainability and Inclusion unit")
