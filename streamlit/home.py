@@ -39,7 +39,7 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown(
-        '<div style="text-align: center; background-color: lightsteelblue; padding: 10px; height:250px; border-radius:10px;"><h1>💁‍♀</h1><p>Empowering <strong>unbanked women</strong> in Nigeria through <font color="blue">Digital Transformation</font></p></div>',
+        '<div style="text-align: center; background-color: lightsteelblue; padding: 10px; height:250px; border-radius:10px;"><h1>💁‍♀</h1><p>Empowering <strong>unbanked women</strong> in Nigeria through Digital Transformation</p></div>',
         unsafe_allow_html=True
     )
 
