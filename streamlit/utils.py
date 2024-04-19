@@ -9,7 +9,6 @@ import plotly.graph_objects as go
 from wordcloud import WordCloud
 from plotly.subplots import make_subplots
 import csv
-from datasets import Dataset
 import cv2
 from pdf2image import convert_from_path
 import easyocr
@@ -29,6 +28,7 @@ from source_code.data_cleaning import clean_date_format, fix_year_format, clean_
 
 
 # from source_code.pdf2csv_easyOCR import ocr_result
+
 def extract_folder_name(zip_file):
     extract_path = os.getcwd()
 
@@ -40,7 +40,7 @@ def extract_folder_name(zip_file):
         shutil.rmtree(macosx_folder)
 
 
-# @st.cache_data
+@st.cache_data
 def data_extraction(folder):
     file_locations = get_file_locations(folder)
     num_files = len(file_locations)
@@ -64,14 +64,14 @@ def data_extraction(folder):
         writer.writerows(combined_csv_data)  # Write the data
     return combined_output_csv
 
-
+@st.cache_data
 def data_cleaning(combined_ouput_csv):
     # Data cleaning
     # os.getcwd()
     df = pd.read_csv(combined_ouput_csv)
 
     # df['Formatted_Date'] = df['Date'].apply(clean_date_format)
-    df['Date'] = pd.to_datetime(df['Date'])
+    df['Date'] = pd.to_datetime(df['Date'], dayfirst = True)
     df['Transaction_Amount'] = df['Transaction_Amount'].apply(clean_transaction_amount)
     df['Member_Status'] = df['Member_Status'].apply(clean_mem_status)
     df['State'] = df['State'].str.lower()
@@ -117,7 +117,7 @@ def add_column_if_missing(df, column_name, after_column):
         df.insert(idx, column_name, None)
     return df
 
-
+@st.cache_data
 def zeroshot_transaction(df):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
@@ -144,7 +144,7 @@ def zeroshot_transaction(df):
     # print(classified_df[['Transaction_Name', 'Transaction_Category1']].head(10))
     return df
 
-
+@st.cache_data
 def data_update_and_save(old_data, new_data, file_name):
     old_data = pd.read_csv(old_data)
     updated_data = pd.concat([old_data, new_data])
@@ -162,6 +162,8 @@ def data_update_and_save(old_data, new_data, file_name):
     # Display processed data
     if os.path.exists(file_name):
         st.subheader("Processed Data")
+        st.dataframe(new_data)
+        st.subheader("Merged Data")
         df = pd.read_csv(file_name)
         st.dataframe(df)
         return df
@@ -184,11 +186,11 @@ def display_data_structure(df):
     st.write(f"**Number of Variables: {df.shape[1]}**")
     st.dataframe(info_df)
 
-
+@st.cache_data(experimental_allow_widgets=True)
 def display_overview(df):
     # df['Formatted_Date'] = pd.to_datetime(df['Formatted_Date'])
     # df['Year'] = df['Formatted_Date'].dt.year
-    df['Date'] = pd.to_datetime(df['Date'])
+    df['Date'] = pd.to_datetime(df['Date'],format='mixed', dayfirst = True)
     df['Year'] = df['Date'].dt.year
 
     count_r = df['Respondent_ID'].nunique()
@@ -495,7 +497,7 @@ def display_overview(df):
 
 
 
-
+@st.cache_data
 def preprocess_text(column):
     nltk.download('punkt')
     nltk.download('stopwords')
@@ -508,7 +510,7 @@ def preprocess_text(column):
         tokens.extend(filtered_words)
     return tokens
 
-
+@st.cache_data
 def get_frequent_words(column, n=10):
     all_words = preprocess_text(column)
     word_counts = Counter(all_words)
@@ -623,7 +625,7 @@ def display_control_panel_2(df):
                                      index=category_options.index(selected_category))
 
     return selected_category, log_transform
-
+@st.cache_data
 def display_histogram(selected_category, log_transform, df):
     filtered_df = df[df['Transaction_Category1'] == selected_category]
 
@@ -652,7 +654,6 @@ def get_unique_values(df):
     for column in df.columns:
         unique_values_by_column[column] = df[column].unique()
     return unique_values_by_column
-
 
 def manual_update(old_data):
     # Update Tabular Data Manually
@@ -783,6 +784,8 @@ def ocr_result(pdf_files):
                 st.write(result)
 
 
+
+@st.cache_data(experimental_allow_widgets=True)
 def process_data(folder_upload, old_upload, filename):
     if folder_upload is not None:
         if folder_upload.type == 'application/zip':
