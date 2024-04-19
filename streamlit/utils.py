@@ -71,7 +71,7 @@ def data_cleaning(combined_ouput_csv):
     df = pd.read_csv(combined_ouput_csv)
 
     # df['Formatted_Date'] = df['Date'].apply(clean_date_format)
-    df['Date'] = pd.to_datetime(df['Date'], dayfirst = True)
+    df['Date'] = pd.to_datetime(df['Date'], format='mixed', dayfirst=True)
     df['Transaction_Amount'] = df['Transaction_Amount'].apply(clean_transaction_amount)
     df['Member_Status'] = df['Member_Status'].apply(clean_mem_status)
     df['State'] = df['State'].str.lower()
@@ -148,6 +148,7 @@ def zeroshot_transaction(df):
 def data_update_and_save(old_data, new_data, file_name):
     old_data = pd.read_csv(old_data)
     updated_data = pd.concat([old_data, new_data])
+    updated_data['Date'] = pd.to_datetime(updated_data['Date'])
     updated_data = updated_data.drop_duplicates()
     # st.download_button(
     #     label="Download Updated CSV",
