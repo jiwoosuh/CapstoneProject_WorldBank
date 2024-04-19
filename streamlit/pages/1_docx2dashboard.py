@@ -95,15 +95,7 @@ def main():
         final_output = process_data(folder_upload, old_upload, file_name)
         display_data_structure(final_output)
         display_overview(final_output)
-        # column_name = st.selectbox(
-        #     'Choose between columns',
-        #     ('Transaction_Name', 'Transaction_Comment'))
-        # n = st.sidebar.slider('Select number of top frequent words:', 1, 30, 10)
-        #
-        # # Placeholder for the visualization
-        # placeholder = st.empty()
-        # fig = interactive_transaction_analysis(final_output, column_name, n)
-        # placeholder.plotly_chart(fig)
+        st.caption("Dashboard generated with Docx2Dashboard")
 
 
 if __name__ == "__main__":

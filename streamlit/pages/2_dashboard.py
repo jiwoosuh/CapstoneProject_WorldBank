@@ -21,6 +21,7 @@ def main():
     st.subheader('Data Structure')
     display_data_structure(df)
     display_overview(df)
+    st.caption("Dashboard generated with Docx2Dashboard")
     # column_name = st.selectbox(
     #     'Choose between columns',
     #     ('Transaction_Name', 'Transaction_Comment'))
