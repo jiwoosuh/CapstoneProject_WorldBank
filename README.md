@@ -6,14 +6,16 @@ Welcome to Docx2Dashboard! This Streamlit web application allows you to preproce
 
 To successfully launch the Streamlit web application, ensure all required Python libraries are installed, meeting the specified versions. You can install the dependencies by running:
 
+```
 pip install -r requirements.txt
+```
 
 ## Usage
 
 1. Initiate the Streamlit web application by executing the following command in your terminal in 'strealit' directory:
-
+```
 streamlit run home.py
-
+```
 2. Navigate to the "docx2dashboard" page and proceed as follows:
 
    - Choose the CSV file you intend to update.
