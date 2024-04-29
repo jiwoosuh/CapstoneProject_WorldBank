@@ -27,5 +27,7 @@ streamlit run home.py
 
 4. Navigate to the "visualization" page to access the interactive visualization dashboard without processing unstructured documents.
 
-Enjoy exploring your data with Docx2Dashboard!
+## Support
+If you encounter any issues or have any questions, feel free to reach out at jiwoosuh@gwu.edu 
 
+## Enjoy exploring your data with Docx2Dashboard!🪄
