@@ -30,4 +30,4 @@ streamlit run home.py
 ## Support
 If you encounter any issues or have any questions, feel free to reach out at jiwoosuh@gwu.edu 
 
-## Enjoy exploring your data with Docx2Dashboard!🪄
+**Enjoy exploring your data with Docx2Dashboard!🪄**
