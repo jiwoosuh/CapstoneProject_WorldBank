@@ -12,7 +12,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-1. Initiate the Streamlit web application by executing the following command in your terminal in 'strealit' directory:
+1. Initiate the Streamlit web application by executing the following command in your terminal in **'streamlit'** directory:
 ```
 streamlit run home.py
 ```
